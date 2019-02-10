@@ -1,0 +1,261 @@
+---
+title: "DC_ch2_Predicting the future"
+author: "Helen Yezerets"
+date: "January 21, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Removing trends in variability via the logarithmic transformation
+The logarithmic function *log()* is a data transformation that can be applied to **positively valued** time series data. It slightly *shrinks observations that are greater than one towards zero, while greatly shrinking very large observations*. This property can *stabilize variability when a series exhibits increasing variability over time*. It may also be used to linearize a rapid growth pattern over time.
+
+```{r}
+
+# Log rapid_growth
+linear_growth <-log(rapid_growth)
+  
+# Plot linear_growth using ts.plot()
+ ts.plot(linear_growth)
+```
+##Removing trends in level by differencing
+The first difference transformation of a time series z[t] consists of the differences (changes) between successive observations over time, that is z[t]???z[t???1].
+
+Differencing a time series can remove a time trend. The function *diff()* will calculate the first difference or change series. A difference series lets you examine the increments or changes in a given time series. It always has one fewer observations than the original series.
+```{r}
+# Generate the first difference of z
+dz <- diff(z)
+  
+# Plot dz
+ts.plot(dz)
+
+# View the length of z and dz, respectively
+
+length(z)
+length(dz)
+
+
+```
+##Removing seasonal trends with seasonal differencing
+For time series exhibiting seasonal trends, seasonal differencing can be applied to remove these periodic patterns. For example, monthly data may exhibit a strong twelve month pattern. In such situations, changes in behavior from year to year may be of more interest than changes from month to month, which may largely follow the overall seasonal pattern.
+
+The function diff(..., lag = s) will calculate the lag s difference or length s seasonal change series. For *monthly or quarterly*data, an appropriate value of s would be *12 or 4*, respectively. The diff() function has lag = 1 as its default for first differencing. Similar to before, a seasonally differenced series will have s fewer observations than the original series.
+```{r}
+# Generate a diff of x with lag = 4. Save this to dx
+dx <- diff(x, lag=4)
+  
+# Plot dx
+  ts.plot(dx)
+
+# View the length of x and dx, respectively 
+length(x)
+length(dx)
+```
+
+#White Noise
+##Simulate the white noise model
+The *white noise (WN)* model is a basic time series model. It is also a basis for the more elaborate models we will consider. We will focus on the simplest form of WN, independent and identically distributed data (iid).
+
+The *arima.sim()* function can be used to simulate data from a variety of time series models. ARIMA is an abbreviation for the *autoregressive integrated moving average* class of models we will consider throughout this course.
+
+An ARIMA(p, d, q) model has three parts, the *autoregressive order p, the order of integration (or differencing) d, and the moving average order q*. We will detail each of these parts soon, but for now we note that the *ARIMA(0, 0, 0) model, i.e., with all of these components zero, is simply the WN model*.
+
+In this exercise, you will practice simulating a basic WN model.
+```{r}
+# Simulate a WN model with list(order = c(0, 0, 0))
+white_noise <- arima.sim(model = list(order=c(0,0,0)), n = 100)
+
+# Plot your white_noise data
+ts.plot(white_noise)
+
+# Simulate from the WN model with: mean = 100, sd = 10
+white_noise_2 <- arima.sim(model = list(order=c(0,0,0)), n = 100, mean = 100,sd = 10)
+
+# Plot your white_noise_2 data
+ts.plot(white_noise_2)
+
+
+```
+##Estimate the white noise model
+For a given time series y we can fit the white noise (WN) model using the arima(..., order = c(0,0, 0)) function. Recall that the WN model is an ARIMA(0,0,0) model. Applying the arima() function returns information or output about the estimated model. For the WN model this includes the estimated mean, labeled intercept, and the estimated variance, labeled sigma^2.
+
+In this exercise, you'll explore the qualities of the WN model. What is the estimated mean? Compare this with the sample mean using the mean() function. What is the estimated variance? Compare this with the sample variance using the var() function.
+
+The time series y has already been loaded, and is shown in the adjoining figure.
+```{r}
+# Fit the WN model to y using the arima command
+arima(y, order=c(0,0,0))
+
+# Calculate the sample mean and sample variance of y
+mean(y)
+var(y)
+
+```
+
+
+Coefficients:
+      intercept
+        97.5428
+s.e.     0.9697
+
+sigma^2 estimated as 94.03:  log likelihood = -369.08,  aic = 742.15
+
+> # Calculate the sample mean and sample variance of y
+> mean(y)
+[1] 97.54284
+> 
+> var(y)
+[1] 94.98175
+
+
+#Random Walk model:
+##Simulate the random walk model
+The random walk (RW) model is also a basic time series model. 
+It is the cumulative sum (or integration) of a mean zero white noise (WN) series, 
+such that the first difference series of a RW is a WN series. 
+Note for reference that the *RW model is an ARIMA(0, 1, 0) model*, in which the middle entry of 1 indicates that the model's order of integration is 1.
+
+The *arima.sim() function can be used to simulate data* from the RW by including the 
+model = list(order = c(0, 1, 0)) argument. We also need to specify a series length n. 
+Finally, you can specify a sd for the series (increments), where the default value is 1.
+```{r}
+# Generate a RW model using arima.sim
+random_walk <- arima.sim(model = list(order=c(0,1,0)), n = 100)
+
+# Plot random_walk
+ts.plot(random_walk)
+
+# Calculate the first difference series
+random_walk_diff <- diff(random_walk)
+
+# Plot random_walk_diff
+ts.plot(random_walk_diff)
+  
+```
+##Simulate the random walk model with a drift
+A random walk (RW) need not wander about zero, it can have an *upward or downward trajectory, i.e., a drift or time trend*. This is done by including an intercept in the RW model, which corresponds to the slope of the RW time trend.
+
+For an alternative formulation, you can take the cumulative sum of a constant mean white noise (WN) series, such that the mean corresponds to the slope of the RW time trend.
+
+To simulate data from the RW model with a drift you again use the arima.sim() function with the model = list(order = c(0, 1, 0)) argument. This time, you should add the additional argument mean = ... to specify the drift variable, or the intercept.
+```{r}
+# Generate a RW model with a drift using arima.sim. Set the mean argument to 1 to produce a drift
+rw_drift <- arima.sim(model =list(order=c(0,1,0)), n = 100, mean = 1)
+
+# Plot rw_drift
+ts.plot(rw_drift)
+
+# Calculate the first difference series
+rw_drift_diff <- diff(rw_drift)
+
+# Plot rw_drift_diff
+ts.plot(rw_drift_diff)
+
+```
+##Estimate the random walk model
+For a given time series y we can fit the random walk model with a drift by first differencing the data, then fitting the white noise (WN) model to the differenced data using the arima() command with the order = c(0, 0, 0)) argument.
+
+The arima() command displays information or output about the fitted model. Under the Coefficients: heading is the estimated drift variable, named the intercept. Its approximate standard error (or s.e.) is provided directly below it. The variance of the WN part of the model is also estimated under the label sigma^2.
+```{r}
+# Difference your random_walk data
+rw_diff <- diff(random_walk)
+
+# Plot rw_diff
+
+ts.plot(rw_diff)
+
+# Now fit the WN model to the differenced data
+model_wn <-arima(rw_diff, order=c(0,0,0))
+
+# Store the value of the estimated time trend (intercept)
+int_wn <- model_wn$coef
+
+# Plot the original random_walk data
+ts.plot(random_walk)
+
+# Use abline(0, ...) to add time trend to the figure
+abline(0, int_wn)
+
+
+```
+##Are the white noise model or the random walk model stationary?
+The white noise (WN) and random walk (RW) models are very closely related. However, only the RW is always non-stationary, both with and without a drift term. This is a simulation exercise to highlight the differences.
+
+Recall that if we start with a mean zero WN process and compute its running or cumulative sum, the result is a RW process. The cumsum() function will make this transformation for you. 
+Similarly, if we create a WN process, but change its mean from zero, 
+and then compute its cumulative sum, the result is a RW process with a drift.
+```{r}
+# Use arima.sim() to generate WN data
+white_noise <- arima.sim(model = list(order = c(0, 0, 0)),n = 100)
+
+# Use cumsum() to convert your WN data to RW
+random_walk <- cumsum(white_noise)
+  
+# Use arima.sim() to generate WN drift data
+wn_drift <- arima.sim(model = list(order = c(0,0,0)), n=100, mean = .4)
+  
+# Use cumsum() to convert your WN drift data to RW
+rw_drift <- cumsum(wn_drift)
+
+# Plot all four data objects
+plot.ts(cbind(white_noise, random_walk, wn_drift, rw_drift))
+
+
+```
+```{r}
+library(nycflights13)
+head(flights)
+```
+```{r flights}
+mean(flights$dep_delay, na.rm=TRUE)
+```
+```{r}
+#Calculate mean, trimmed mean (10%), and median for Male workers salary (M_weekly). Make sure to set null value parameter to TRUE (see ?mean).
+income<-read.csv('income.csv')
+head(income)
+```
+```{r}
+mean(income$M_weekly, na.rm = TRUE)
+mean(income$M_weekly, na.rm=TRUE, trim=0.1)
+median(income$M_weekly, na.rm = TRUE)
+
+```
+```{r}
+#Calculate standard deviation, interquartile range, and median absolute standard deviation (MAD) for female workers. 
+
+sd(income$F_workers)
+IQR(income$F_workers)
+mad(income$F_workers)
+
+```
+```{r}
+CBE <- read.delim("cbe.dat", header = T)
+CBE[1:4, ]
+Elec.ts <- ts(CBE[, 3], start = 1958, frequency =  12)
+Beer.ts <- ts(CBE[, 2], start = 1958, frequency =  12)
+Choc.ts <- ts(CBE[, 1], start = 1958, frequency =  12)
+plot(cbind(Elec.ts, Beer.ts, Choc.ts), main="Chocolate, Beer, and Electricity Production: 1958???1990")
+```
+
+##In R, the function decompose estimates trends and seasonal effects a moving average method. 
+Nesting the function within plot (e.g., using
+plot(stl())) produces a single figure showing the original series xt and the
+decomposed series mt, st, and zt.
+```{r}
+plot(decompose(Elec.ts))
+Elec.decom <- decompose(Elec.ts, type = "mult")
+plot(Elec.decom)
+Trend <- Elec.decom$trend
+Seasonal <- Elec.decom$seasonal
+ts.plot(cbind(Trend, Trend * Seasonal), lty = 1:2)
+```
+```{r}
+plot(stl(Elec.ts, s.window = 13))
+Elec.stl <- stl(Elec.ts, s.window = 13)
+plot(Elec.stl)
+#ts.plot(cbind(Elec.stl$trend, Elec.stl$trend * Elec.stl$seasonal), lty = 1:2)
+summary(Elec.stl)
+
+```
+

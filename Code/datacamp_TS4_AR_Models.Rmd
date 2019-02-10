@@ -1,0 +1,158 @@
+---
+title: "datacamp_TS4_AutoRegressiveModels"
+author: "Helen Yezerets"
+date: "February 7, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Simulate the autoregressive model
+The autoregressive (AR) model is arguably the most widely used time series model. It shares the very familiar interpretation of a simple linear regression, but here each observation is regressed on the previous observation. 
+
+The AR model also includes the white noise (WN) and random walk (RW) models examined in earlier chapters as special cases.
+
+The versatile **arima.sim()** function used for WN and RW can also be used to simulate data from an AR model by setting the model argument equal to **list(ar = phi)** , in which **phi** is a slope parameter from the interval (-1, 1). We also need to specify a series length n.(example: model =list(ar=0.5), n = 100)
+
+###Examples:
+```{r}
+# Simulate an AR model with 0.5 slope
+x <- arima.sim(model =list(ar=0.5), n = 100)
+
+# Simulate an AR model with 0.9 slope. Slope 0.9 will increase the autocorrelation
+y <- arima.sim(model=list(ar=0.9), n=100)
+
+# Simulate an AR model with -0.75 slope, negative slope will create an oscilative model
+z <- arima.sim(model=list(ar=-0.75),n=100)
+
+# Plot your simulated data
+plot.ts(cbind(x, y, z))
+
+```
+###Analysis:
+- x data shows a just a moderate amount of autocorrelation 
+- y data shows a **large amount of autocorrelation**
+- z data tends to **oscillate** considerably from one observation to the next.
+
+##Estimate the autocorrelation function (ACF) for an autoregression
+The **acf()** command estimates autocorrelation by exploring lags in the data (the relationship between the current observation and lags extending backwards). **By default, this command generates a plot**.
+
+###Examples:
+
+```{r}
+# Calculate the ACF for x
+acf(x)
+
+# Calculate the ACF for y
+acf(y)
+
+# Calculate the ACF for z
+acf(z)
+
+```
+###Analysis:
+- The first series x has **positive autocorrelation for the first couple lags*, but they quickly approach zero. 
+- The second series y has **positive autocorrelation for many lags**, but they also decay to zero. 
+- The last series z has an **alternating pattern**, as does its autocorrelation function (ACF), but its ACF still quickly decays to zero in magnitude.
+
+##Persistence and anti-persistence
+Autoregressive processes can exhibit varying levels of persistence as well as anti-persistence or oscillatory behavior. 
+- **Persistence** is defined by a **high correlation** between an observation and its lag. clear downward trend over time shows a very high degree of persistence.
+- **anti-persistence** is defined by a **large amount of variation** between an observation and its lag.
+
+##Compare the random walk (RW) and autoregressive (AR) models
+The random walk (RW) model is a **special case of the autoregressive (AR) model**, in which the slope parameter is equal to 1. 
+The **RW model is not stationary and exhibits very strong persistence**. 
+Its sample autocovariance function (ACF) also decays to zero **very slowly**, meaning past values have a long lasting impact on current values.
+
+The **AR model is stationary** with a slope parameter between -1 and 1. The AR model exhibits **higher persistence when its slope parameter is closer to 1**, but the process reverts to its mean fairly quickly. 
+Its sample ACF also decays to zero at a **quick (geometric) rate**, indicating that values far in the past have little impact on future values of the process.
+
+###Examples:
+```{r}
+# Simulate and plot AR model with slope 0.9 
+x <- arima.sim(model = list(ar=0.9), n = 200)
+ts.plot(x)
+acf(x)
+
+# Simulate and plot AR model with slope 0.98: higher persistence when its slope parameter is closer to 1
+y <- arima.sim(model= list(ar=0.98), n=200)
+ts.plot(y)
+acf(y)
+
+# Simulate and plot RW model: slope is close to 1, strong persistence
+z <- arima.sim(model= list(order=c(0,1,0)), n=200)
+ts.plot(z)
+acf(z)
+
+```
+###Analysis:
+- The AR model represented by series y exhibits greater persistence than series x, but the ACF continues to decay to 0. 
+- By contrast, the RW model represented by series z shows considerable persistence and relatively **little decay** in the ACF.
+ 
+##Estimate the autoregressive (AR) model
+For a given time series x we can fit the autoregressive (AR) model using the **arima()** command and setting order equal to c(1, 0, 0). Note for reference that an AR model is an **arima(1, 0, 0)** model.
+
+arima() command allows to identify 
+- the estimated slope (ar1), 
+- mean (intercept), and 
+- innovation variance (sigma^2) of the model.
+
+###Examples:
+```{r}
+# Fit the AR model to x
+arima(x, order = c(1,0,0))
+
+# Copy and paste the slope (ar1) estimate
+#0.8575
+
+# Copy and paste the slope mean (intercept) estimate
+#-0.0948
+
+# Copy and paste the innovation variance (sigma^2) estimate
+#1.022
+
+# Fit the AR model to AirPassengers
+AR <-arima(AirPassengers, order = c(1,0,0))
+print(AR)
+
+# Run the following commands to plot the series and fitted values
+ts.plot(AirPassengers)
+AR_fitted <- AirPassengers - residuals(AR)
+points(AR_fitted, type = "l", col = 2, lty = 2)
+
+
+```
+##Simple forecasts from an estimated AR model
+Now that you've modeled your data using the arima() command, you are ready to make simple forecasts based on your model. The predict() function can be used to make forecasts from an estimated AR model. In the object generated by your predict() command, the $pred value is the forceast, and the $se value is the standard error for the forceast.
+
+To make predictions for several periods beyond the last observations, you can use the n.ahead argument in your predict() command. This argument establishes the forecast horizon (h), or the number of periods being forceast. The forecasts are made recursively from 1 to h-steps ahead from the end of the observed time series.
+
+In this exercise, you'll make simple forecasts using an AR model applied to the Nile data, which records annual observations of the flow of the River Nile from 1871 to 1970.
+
+```{r}
+# Fit an AR model to Nile
+AR_fit <-arima(Nile, order  = c(1,0,0))
+print(AR_fit)
+
+# Use predict() to make a 1-step forecast
+predict_AR <- predict(AR_fit)
+
+# Obtain the 1-step forecast using $pred[1]
+
+predict_AR$pred[1]
+# Use predict to make 1-step through 10-step forecasts
+predict(AR_fit, n.ahead = 10)
+
+# Run to plot the Nile series plus the forecast and 95% prediction intervals
+ts.plot(Nile, xlim = c(1871, 1980))
+AR_forecast <- predict(AR_fit, n.ahead = 10)$pred
+AR_forecast_se <- predict(AR_fit, n.ahead = 10)$se
+points(AR_forecast, type = "l", col = 2)
+points(AR_forecast - 2*AR_forecast_se, type = "l", col = 2, lty = 2)
+points(AR_forecast + 2*AR_forecast_se, type = "l", col = 2, lty = 2)
+```
+
+

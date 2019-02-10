@@ -1,0 +1,45 @@
+---
+title: "Ch2_Covariance"
+author: "Helen Yezerets"
+date: "February 9, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Fontdsdt.dat<- read.table("../Data/Fontdsdt.dat", header = TRUE)
+attach(Fontdsdt.dat)
+plot(ts(adflow), ylab = 'adflow')
+acf(adflow, xlab = 'lag (months)', main="")
+
+```
+Compute correlation:
+Variant 1
+```{r}
+cov(x,y)/(sd(x)*sd(y))
+
+```
+Variant 2
+```{r}
+cor(x,y)
+```
+
+The main difference between the regression approach and using
+decompose is that the former assumes a linear trend, whereas the latter
+smooths the time series without assuming any particular form for the trend.
+
+###2.5 Summary of commands used in examples
+```{r ignore=TRUE}
+
+mean() # returns the mean (average)
+var() #returns the variance with denominator n ??? 1
+sd() #returns the standard deviation
+cov() #returns the covariance with denominator n ??? 1
+cor() #returns the correlation
+acf() #returns the correlogram (or sets the argument to obtain autocovariance function)
+
+```
+
