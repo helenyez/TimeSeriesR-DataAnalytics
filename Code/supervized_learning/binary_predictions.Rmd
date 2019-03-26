@@ -1,0 +1,53 @@
+---
+title: "binary_predictions"
+author: "Helen Yezerets"
+date: "March 1, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Building simple logistic regression models
+The donors dataset contains 93,462 examples of people mailed in a fundraising solicitation for paralyzed military veterans. The donated column is 1 if the person made a donation in response to the mailing and 0 otherwise. This binary outcome will be the dependent variable for the logistic regression model.
+
+The remaining columns are features of the prospective donors that may influence their donation behavior. These are the model's independent variables.
+
+When building a regression model, it is often helpful to form a hypothesis about which independent variables will be predictive of the dependent variable. The bad_address column, which is set to 1 for an invalid mailing address and 0 otherwise, seems like it might reduce the chances of a donation. Similarly, one might suspect that religious interest (interest_religion) and interest in veterans affairs (interest_veterans) would be associated with greater charitable giving.
+
+In this exercise, you will use these three factors to create a simple model of donation behavior. The dataset donors is available in your workspace.
+
+```{r}
+# Examine the dataset to identify potential independent variables
+str(donors)
+
+# Explore the dependent variable
+table(donors$donated)
+
+# Build the donation model
+donation_model <- glm(donated ~ bad_address + interest_religion + interest_veterans, 
+                      data = donors, family = "binomial")
+
+# Summarize the model results
+summary(donation_model)
+```
+##Making a binary prediction
+In the previous exercise, you used the **glm() function to build a logistic regression model** of donor behavior. As with many of R's machine learning methods, you can apply the **predict() function to the model object to forecast future behavior**. By default, predict() outputs predictions in terms of log odds unless **type = "response" is specified. This converts the log odds to probabilities.**
+
+Because a logistic regression model estimates the probability of the outcome, it is up to you to determine the threshold at which the probability implies action. One must balance the extremes of being too cautious versus being too aggressive. For example, if you were to solicit only the people with a 99% or greater donation probability, you may miss out on many people with lower estimated probabilities that still choose to donate. This balance is particularly important to consider for severely imbalanced outcomes, such as in this dataset where donations are relatively rare.
+
+The dataset donors and the model donation_model are already loaded in your workspace.
+```{r}
+# Estimate the donation probability
+donors$donation_prob <- predict(donation_model, type = "response")
+
+# Find the donation probability of the average prospect
+mean(donors$donated)
+
+# Predict a donation if probability of donation is greater than average
+donors$donation_pred <- ifelse(donors$donation_prob > 0.0504, 1, 0)
+
+# Calculate the model's accuracy
+mean(donors$donated == donors$donation_pred)
+```

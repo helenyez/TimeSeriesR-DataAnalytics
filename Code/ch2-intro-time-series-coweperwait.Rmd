@@ -9,6 +9,58 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+```{r}
+data(AirPassengers)
+AP <- AirPassengers
+AP.decom <- decompose(AP, "multiplicative")
+plot(ts(AP.decom$random[7:138]))
+acf(AP.decom$random[7:138])
+
+
+```
+
+###Cosine shape is a characteristic of autoregressive model of order 2 or  a failed seasonal adjustment by **decom** function. We need to check the st dev
+
+```{r}
+sd(AP[7:138])
+sd(AP[7:138] - AP.decom$trend[7:138])
+sd(AP.decom$random[7:138])
+##The reduction in the standard deviation shows that the seasonal adjustment has been very effective.
+```
+
+##
+```{r}
+Fontdsdt.dat<- read.table("../Data/Fontdsdt.dat", header = TRUE)
+attach(Fontdsdt.dat)
+plot(ts(adflow), ylab = 'adflow')
+acf(adflow, xlab = 'lag (months)', main="")
+
+```
+Compute correlation:
+Variant 1
+```{r}
+cov(x,y)/(sd(x)*sd(y))
+
+```
+Variant 2
+```{r}
+cor(x,y)
+```
+- regression approach  assumes a linear trend
+- decompose smooths the time series without assuming any particular form for the trend.
+
+###2.5 Summary of commands used in examples
+```{r ignore=TRUE}
+
+mean(x) # returns the mean (average)
+var(x) #returns the variance with denominator n ??? 1
+sd(x) #returns the standard deviation
+cov(x,y) #returns the covariance with denominator n ??? 1
+cor(x,y) #returns the correlation
+acf(y, lag.max=10,plot=FALSE) #returns the correlogram (or sets the argument to obtain autocovariance function)
+
+```
 ```{r}
 Fontdsdt.dat<- read.table("../Data/Fontdsdt.dat", header = TRUE)
 attach(Fontdsdt.dat)
@@ -34,12 +86,85 @@ smooths the time series without assuming any particular form for the trend.
 ###2.5 Summary of commands used in examples
 ```{r ignore=TRUE}
 
-mean() # returns the mean (average)
-var() #returns the variance with denominator n ??? 1
-sd() #returns the standard deviation
-cov() #returns the covariance with denominator n ??? 1
-cor() #returns the correlation
-acf() #returns the correlogram (or sets the argument to obtain autocovariance function)
+mean(x) # returns the mean (average)
+var(x) #returns the variance with denominator n ??? 1
+sd(x) #returns the standard deviation
+cov(x,y) #returns the covariance with denominator n ??? 1
+cor(x,y) #returns the correlation
+acf(y, lag.max=10,plot=FALSE) #returns the correlogram (or sets the argument to obtain autocovariance function)
 
 ```
 
+```{r}
+Varnish<- read.table("../Data/varnish.dat", header = TRUE)
+#1) the mean for y,  
+mean(Varnish$y)
+#2) the standard deviation for y,
+sd(Varnish$y)
+# 3) covariance between x and y.
+cov(Varnish$x,Varnish$y)
+```
+
+```{r}
+
+#Import data into R, Draw a scatterplot, and calculate a correlation between x and y.
+
+guessWhat<-read.table("../Data/guesswhat.dat", header = TRUE)
+cor(guessWhat$x, guessWhat$y)
+cov(guessWhat$x, guessWhat$y)
+
+```
+
+```{r}
+plot(guessWhat)
+```
+
+
+```{r}
+
+cbe <- read.table("../Data/cbe.dat", header = TRUE)
+
+#. Create a time series choc.ts for the first column [chocolate production]. Your starting point is 1958, frequency - 12. 
+Elec.ts <- ts(cbe[, 3], start = 1958, frequency = 12)
+Choc.ts <- ts(cbe[, 1], start = 1958, frequency = 12)
+```
+
+
+
+
+
+#3. Plot choc.ts. Decide if your model should be additive or multiplicative. Hint: compare with electricity data, does the variance of the chocolate data increase with the trend increase? 
+```{r}
+plot(cbind(Elec.ts,Choc.ts))
+```
+
+```{r}
+plot(decompose(Choc.ts))
+Choc.decom <- decompose(Choc.ts, type="additive")
+plot(Choc.decom)
+Trend <- Choc.decom$trend
+Seasonal <- Choc.decom$seasonal
+ts.plot(cbind(Trend, Trend + Seasonal), lty = 1:2)
+```
+1. Calculate standard deviation for chocolate time series (not decomposed) #1
+
+2. Calculate standard deviation for chocolate time series [12 indices removed] subtracting trend [12 indices removed] #2
+
+3. Calculate standard deviation after seasonal adjustments [12 indices removed] #3
+
+```{r}
+Choc.ts1 <- ts(cbe[, 1], start = 1958, frequency = 12)
+sd(Choc.ts1)
+Choc.decomp1<- decompose(Choc.ts1, type="additive")
+sd(Choc.decomp1$x[7:390]-Choc.decomp1$trend[7:390])
+sd(Choc.decomp1$x[7:390]-Choc.decomp1$seasonal[7:390])
+
+
+
+
+```
+
+1771 1051 1425
+```{r}
+acf(Choc.decom$random[7:390])
+```

@@ -1,0 +1,141 @@
+---
+title: "datacamp_xts5_index"
+author: "Helen Yezerets"
+date: "February 28, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Using the **tclass()** function on temps returns the same output as does **indexClass()**.
+**indexFormat(temps)** <- "%b %d, %Y" changes the index of the first entry of the data to Jul 01, 2016.
+Typing **help(OlsonNames)** into the console will provide R documentation for time zones.
+
+##Class attributes - tclass, tzone, and tformat
+xts objects are somewhat tricky when it comes to time. Internally, we have now seen that the index attribute is really a vector of numeric values corresponding to the seconds since the UNIX epoch (1970-01-01).
+
+How these values are displayed on printing and how they are returned to the user when using the index() function is dependent on a few key internal attributes.
+
+The information that controls this behavior can be viewed and even changed through a set of accessor functions detailed here:
+
+The index class using indexClass() (e.g. from Date to chron)
+The time zone using indexTZ() (e.g. from America/Chicago to Europe/London)
+The time format to be displayed via indexFormat() (e.g. YYYY-MM-DD)
+```{r}
+# View the first three indexes of temps
+index(temps)[1:3]
+
+# Get the index class of temps
+indexClass(temps)
+
+# Get the timezone of temps
+indexTZ(temps)
+
+# Change the format of the time display
+indexFormat(temps) <- "%b-%d-%Y"
+
+# View the new format
+temps
+
+```
+##Time Zones (and why you should care!)
+One of the trickiest parts to working with time series in general is dealing with time zones. xts provides a simple way to leverage time zones on a per-series basis. While R provides time zone support in native classes POSIXct and POSIXlt, xts extends this power to the entire object, allowing you to have multiple time zones across various objects.
+
+Some internal operation system functions require a time zone to do date math. If a time zone isn't explicitly set, one is chosen for you! Be careful to always set a time zone in your environment to prevent errors when working with dates and times.
+
+xts provides the function tzone(), which allows you to extract or set time zones.
+
+tzone(x) <- "Time_Zone"
+
+Construct an xts time series of the numbers 1 through 10 called times_xts, with tzone set to "America/Chicago", and indexed by the times object.
+Modify times_xts to show time in "Asia/Hong_Kong".
+Extract the current time zone as a string.
+```{r}
+# Construct times_xts with tzone set to America/Chicago
+times_xts <- xts(1:10, order.by = times, tzone = "America/Chicago")
+
+# Change the time zone of times_xts to Asia/Hong_Kong
+tzone(times_xts) <- "Asia/Hong_Kong"
+  
+# Extract the current time zone of times_xts
+tzone(times_xts)
+```
+##Determining periodicity
+xts provides a handy tool to discover regularity in your data by estimating the frequency of the observations - what we are referring to as periodicity - using the [periodicity()](http://www.rdocumentation.org/packages/xts/versions/0.9-7/topics periodicity) command
+
+We often do this as a first step to understand the data before diving in for further analysis.
+```{r}
+# Calculate the periodicity of temps
+periodicity(temps)
+
+# Calculate the periodicity of edhec
+periodicity(edhec)
+
+# Convert edhec to yearly
+edhec_yearly <- to.yearly(edhec)
+
+# Calculate the periodicity of edhec_yearly
+periodicity(edhec_yearly)
+
+```
+##Find the number of periods in your data
+To know how many discrete irregular periods your time series data covers:
+how many days, weeks or years your data contains(ndays(), nmonths(), nquarters(), and so forth, making counting irregular periods easy)
+```{r}
+# Count the months
+nmonths(edhec)
+
+# Count the quarters
+nquarters(edhec)
+
+# Count the years
+nyears(edhec)
+```
+##Secret index tools
+xts uses a very special attribute called **index** to provide time support to your objects. For performance and design reasons, the index is stored in a special way. This means that regardless of the class of your index (e.g. Date or yearmon) everything internally looks the same to xts. **The raw index is actually a simple vector of fractional seconds since the UNIX epoch**.
+
+Normally you want to access the times you stored. index() does this magically for you by using your indexClass. To get to the raw vector of the index, you can use **.index()**. Note the critical dot before the function name.
+
+More useful than extracting raw seconds is the ability to extract time components similar to the POSIXlt class, which closely mirrors the underlying POSIX internal compiled structure tm. This functionality is provided by a handful of commands such as **.indexday(), .indexmon(), .indexyear(), .indexwday()**, and more.
+
+In this exercise, you'll take a look at the weekend weather in our pre-loaded temps data using the **.indexwday() command to see the day of the week of your observations**. Note that the values range from 0-6, with **Sunday equal to 0**. Recall that you can use a logical vector to extract elements of an xts object.
+
+```{r}
+# Explore underlying units of temps in two commands: .index() and .indexwday()
+
+.index(temps)
+.indexwday(temps)
+
+# Create an index of weekend days using which()
+index <- which(.indexwday(temps) == 6 | .indexwday(temps) == 0)
+
+# Select the index
+temps[index]
+
+```
+##Modifying timestamps
+Most time series we've seen have been daily or lower frequency. Depending on your field, you might encounter higher frequency data - think intraday trading intervals, or sensor data from medical equipment.
+
+In these situations, there are two functions in xts that are handy to know.
+
+If you find that you have observations with identical timestamps, it might be useful to perturb or remove these times to allow for uniqueness. xts provides the function make.index.unique() for just this purpose. The eps argument, short for epsilon or small change, controls how much identical times should be perturbed, and drop = TRUE lets you just remove duplicate observations entirely.
+
+On other ocassions you might find your timestamps a bit too precise. In these instances it might be better to round up to some fixed interval, for example an observation may occur at any point in an hour, but you want to record the latest as of the beginning of the next hour. For this situation, the align.time() command will do what you need, setting the n argument to the number of seconds you'd like to round to.
+
+make.index.unique(x, eps = 1e-4)  # Perturb
+make.index.unique(x, drop = TRUE) # Drop duplicates
+align.time(x, n = 60) # Round to the minute
+In this exercise, you'll try the three use cases on an xts object called z.
+```{r}
+# Make z have unique timestamps
+z_unique <- make.index.unique(z, eps = 1e-4)
+
+# Remove duplicate times in z
+z_dup <- make.index.unique(z, drop = TRUE)
+
+# Round observations in z to the next hour (3600 sec per hour)
+z_round <- align.time(z, n = 3600)
+```
+

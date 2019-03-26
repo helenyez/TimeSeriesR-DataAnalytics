@@ -1,0 +1,312 @@
+---
+title: "Linear Regression"
+author: "Helen Yezerets"
+date: "February 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#install.packages("devtools")
+#devtools::install_github("nickpoison/astsa")
+library(devtools)
+library(astsa)
+library(xts)
+
+```
+```{r}
+data("jj")
+head(jj)
+```
+
+```{r}
+
+class(jj)
+jj_xts<-as.xts(jj)
+class(jj_xts)
+```
+```{r}
+jj_xts
+last(jj_xts, '1 year')
+```
+
+```{r}
+#coredata(jj_xts)
+#index(jj_xts)
+periodicity(jj_xts)
+start(jj)
+end(jj)
+frequency(jj)
+plot(aggregate(jj), ylab = "Aggregated annually")
+boxplot(jj ~ cycle(jj))
+```
+
+```{r}
+data("sunspotz")
+#head(sunspotz)
+#class(sunspotz)
+plot(sunspotz)
+sun.decom<-decompose(sunspotz)
+plot(sun.decom)
+acf(sun.decom$random[2:458],lag.max=2, plot = FALSE)
+```
+
+
+
+```{r}
+data("chicken")
+summary(fit <- lm(chicken~time(chicken), na.action=NULL))
+plot(chicken, ylab="cents per pound")
+abline(fit) # add the fitted line
+```
+
+```{r}
+culer = c(rgb(.9,.5,.5), rgb(.5,.9,.5), rgb(.5,.5,.9))
+par(mfrow=c(3,1))
+tsplot(cmort, main="Cardiovascular Mortality", col=culer[1], type="o", pch=19, ylab="")
+tsplot(tempr, main="Temperature", col=culer[2], type="o", pch=19, ylab="")
+tsplot(part, main="Particulates", col=culer[3], type="o", pch=19, ylab="")
+```
+
+```{r}
+tsplot(cmort, main="", ylab="", ylim=c(20,130), col=culer[1])
+lines(tempr, col=culer[2])
+lines(part, col=culer[3])   
+legend("topright", legend=c("Mortality", "Temperature", "Pollution"), lty=1, lwd=2, col=culer, bg="white")
+##
+
+```
+```{r}
+dev.new() # open a new graphic device
+ts.plot(cmort,tempr,part, col=1:3) # all on same plot (not shown)
+```
+
+
+##Load dynlm
+```{r}
+fish = ts.intersect(rec, soiL6=lag(soi,-6), dframe=TRUE)
+summary(fit1 <- lm(rec~soiL6, data=fish, na.action=NULL))
+```
+
+#The headache of aligning the lagged series can be avoided by using the R package `dynlm`, which must be downloaded and installed.
+```{r}
+library(dynlm)
+summary(fit2 <- dynlm(rec~ L(soi,6)))
+
+```
+##Load Unemp data
+##2. 
+Reproduce the same workflow for unemp data (from astsa package)
+```{r}
+data("unemp")
+summary(fit <- lm(unemp~time(unemp), na.action=NULL))
+plot(unemp)
+abline(fit) # add the fitted line
+```
+
+##3. R-squared and df, MSE,AIC and BIC
+Follow steps from the example 2.2. Review stats in the chapter as needed.
+* from summary(fit) obtain the results for R-squared and df
+* from summary(aov(fit)) obtain MSE
+* from AIC and BIC formula obtain AIC and BIC
+
+Compare your results with the table 2.2 page 53.
+```{r}
+summary(fit)
+summary(aov(fit))
+
+```
+##4. Reduce the model 
+by removing one independent variable, starting from the last one:
+
+cmort~ trend + temp + temp2 + part  becomes cmort~ trend + temp + temp2
+
+Obtain the summary stats and compare with the table 2.2
+
+```{r}
+dev.new()
+pairs(cbind(Mortality=cmort, Temperature=tempr, Particulates=part))
+temp = tempr-mean(tempr) # center temperature
+temp2 = temp^2
+trend = time(cmort) # time
+fit21 = lm(cmort~ trend + temp + temp2 + part, na.action=NULL)
+
+fit20 = lm(cmort~ trend + temp + temp2, na.action=NULL)
+
+fit19 = lm(cmort~ trend + temp, na.action=NULL)
+```
+
+##Summary statistics
+```{r}
+summary(fit21) # regression results
+#R2=Multiple R-squared:  0.5954,	Adjusted R-squared:  0.5922 
+summary(fit20)
+summary(fit19)
+```
+
+##Compare ANOVA with Residuals
+df, SSE=Sum Sq, MSE=Mean Sq
+###fit21
+```{r}
+
+summary(aov(fit21)) # ANOVA table (compare to next line)
+
+summary(aov(lm(cmort~cbind(trend, temp, temp2, part)))) # Table 2.1
+```
+###fit20
+```{r}
+#Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+summary(aov(fit20)) # ANOVA table (compare to next line)
+
+#Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+summary(aov(lm(cmort~cbind(trend, temp, temp2)))) # Table 2.1
+```
+###fit19
+```{r}
+#Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+summary(aov(fit19)) # ANOVA table (compare to next line)
+
+#Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+summary(aov(lm(cmort~cbind(trend, temp)))) # Table 2.1
+```
+
+##Obtain AIC and BIC
+###fit21
+```{r}
+num = length(cmort) # sample size
+
+#21
+AIC(fit21)/num - log(2*pi) # AIC
+BIC(fit21)/num - log(2*pi) # BIC
+(AICc = log(sum(resid(fit21)^2)/num) + (num+5)/(num-5-2)) # AICc
+```
+###fit20
+```{r}
+#20
+AIC(fit20)/num - log(2*pi) # AIC
+BIC(fit20)/num - log(2*pi) # BIC
+(AICc = log(sum(resid(fit20)^2)/num) + (num+5)/(num-5-2)) # AICc
+
+```
+
+###fit19
+```{r}
+#19
+AIC(fit19)/num - log(2*pi) # AIC
+BIC(fit19)/num - log(2*pi) # BIC
+(AICc = log(sum(resid(fit19)^2)/num) + (num+5)/(num-5-2)) # AICc
+
+```
+##5. 
+###fit18
+Your last model should be cmort~trend
+```{r}
+fit18 = lm(cmort~ trend, na.action=NULL)
+summary(fit18)
+```
+
+
+##Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+###fit18
+```{r}
+summary(aov(fit18)) # ANOVA table (compare to next line)
+
+#Residuals: df, SSE=Sum Sq, MSE=Mean Sq
+summary(aov(lm(cmort~cbind(trend)))) # Table 2.1
+```
+##AIC and BIC
+###fit18
+```{r}
+#18
+AIC(fit18)/num - log(2*pi) # AIC
+BIC(fit18)/num - log(2*pi) # BIC
+(AICc = log(sum(resid(fit18)^2)/num) + (num+5)/(num-5-2)) # AICc
+
+```
+
+##6
+Load econ5 data
+```{r}
+data(econ5, package="astsa")
+```
+##7. 
+Plot unemployment, gnp, consumption. Hint: you can extract each column with $. The following columns exist:  unemp, gnp, consum, govinv, prinv.
+
+```{r}
+
+par(mfrow=c(3,1))
+tsplot(econ5$unemp, main="Unemployment",  col=culer[1],type="o",pch=19, ylab="")
+tsplot(econ5$gnp, main="GNP", col=culer[2], type="o", pch=19, ylab="")
+tsplot(econ5$consum, main="Consumption", col=culer[3], type="o", pch=19, ylab="")
+```
+##8. 
+Create **pairs** with all three columns. Hint: you can extract each column with $
+
+```{r}
+dev.new()
+pairs(cbind(Unemployment=econ5$unemp, GNP=econ5$gnp, GovInv=econ5$govinv))
+
+```
+
+##9.Convert to ts
+econ5 is a dataframe. Convert it into a time series using **ts** function. 
+Set start=c(1948, 3), end=c(1988, 2), frequency=4 - review econ5 information to understand why we are using frequency 4 (by quarter)
+
+```{r}
+econ5.ts <- ts(econ5, start=c(1948,3), end=c(1988,2), frequency = 4)
+plot(econ5.ts)
+```
+
+##10. 
+Create four variables for **lm()**. In the example below replace usdata with the name of your time series.
+```{r}
+trend = time(econ5.ts) #time
+gnp <- econ5.ts[,2]
+consum <- econ5.ts[,3]
+govinv<-econ5.ts[,4]
+response <- econ5.ts[,1]
+```
+
+##11. 
+Create a model **lm()** with y=response and x1=trend, x2=gnp, x3=consum (independent variables). See step 4 above.
+```{r}
+fit_econ1 <- lm(response~ trend + gnp + consum, na.action=NULL)
+fit_econ2 <- lm(response~ trend + gnp, na.action=NULL)
+fit_econ3 <- lm(response~ trend, na.action=NULL)
+#Create a linear model with unemployment, government investment and gnp.
+fit_econ4<-lm(response~ trend + govinv + gnp, na.action=NULL)
+
+```
+##12
+Obtain a summary of your model
+
+```{r}
+summary(fit_econ1)
+plot(response)
+abline(fit_econ1) # add the fitted line
+```
+
+```{r}
+
+summary(fit_econ2)
+plot(response)
+abline(fit_econ2) # add the fitted line
+```
+
+```{r}
+summary(fit_econ3)
+plot(response)
+abline(fit_econ3) # add the fitted line
+```
+
+##Gov Investment
+
+```{r}
+summary(fit_econ4)
+plot(response)
+abline(fit_econ4) # add the fitted line
+```
+

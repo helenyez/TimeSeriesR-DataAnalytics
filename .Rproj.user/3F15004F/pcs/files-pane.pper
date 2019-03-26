@@ -1,8 +1,8 @@
 {
-    "path" : "~/GitHub/TimeSeriesR-DataAnalytics",
+    "path" : "~/GitHub/TimeSeriesR-DataAnalytics/Data",
     "sortOrder" : [
         {
-            "ascending" : true,
+            "ascending" : false,
             "columnIndex" : 2
         }
     ]

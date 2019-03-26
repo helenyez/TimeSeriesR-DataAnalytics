@@ -1,0 +1,35 @@
+---
+title: "ARIMA_modeling"
+author: "Helen Yezerets"
+date: "March 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Source: 
+Chatterjee, S. (2018, February 05). Time Series Analysis Using ARIMA Model In R. Retrieved March 25, 2019, from https://datascienceplus.com/time-series-analysis-using-arima-model-in-r/
+
+##What is ARIMA (AutoRegressive Integrated Moving Average) modeling
+AR: lags of the differenced series
+I : number of difference used to make the time series stationary
+MA: lags of errors
+
+##Assumptions of ARIMA model
+1. Does not depend on time (stationary).Example: white noise series and series with cyclic behavior.
+2. Univariate data (one variable). Auto-regression works with the past values.
+
+```{r}
+#Use astsa package
+library(astsa)
+data()                     # use this command to view all the loaded data 
+```
+
+```{r birth}
+#Convert dataset to ts using monthly data
+tsData = ts(birth, frequency = 12)
+components.ts = decompose(tsData)
+plot(components.ts)
+```

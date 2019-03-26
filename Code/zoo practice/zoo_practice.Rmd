@@ -1,0 +1,467 @@
+---
+title: "Zoo Practice"
+author: "Helen Yezerets"
+date: "February 14, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#install.packages(zoo)
+#library(zoo)
+#library(xts)
+```
+#Reference: 
+
++ %Y: 4-digit year (1982)
++ %y: 2-digit year (82)
++ %m: 2-digit month (01)
++ %d: 2-digit day of the month (13)
++ %A: weekday (Wednesday)
++ %a: abbreviated weekday (Wed)
++ %B: month (January)
++ %b: abbreviated month (Jan)
+
+
+##Exercise 1.
+
+###Step 1. The default format is "YYYY/m/d" or "YYYY-m-d"
+
+```{r}
+my.date = as.Date("1970/1/1")
+
+my.date
+
+class(my.date)
+
+as.numeric(my.date)
+
+myDates = c("2013-12-19", "2003-12-20")
+
+as.Date(myDates)
+
+```
+
+###Step 2. 
+Use the format argument to specify the input format of the date
+
+```{r}
+as.Date("1/1/1970", format="%m/%d/%Y")
+
+as.Date("January 1, 1970", format="%B %d, %Y")
+
+as.Date("01JAN70", format="%d%b%y")
+
+```
+
+###Step 3. Extract information
+
+```{r}
+myYear = format(my.date, "%Y")
+
+myYear
+
+class(myYear)
+
+as.numeric(myYear)
+
+as.numeric(format(my.date, "%y"))
+
+```
+
+ 
+###Step 4.  Other components of data
+the weekdays(), months(), quarters() and julian() functions can be used to extract specific components of Date objects
+
+```{r}
+weekdays(my.date, abbreviate = FALSE)
+
+months(my.date, abbreviate = FALSE)
+
+quarters(my.date, abbreviate = FALSE)
+
+julian(my.date, abbreviate = FALSE)
+
+```
+ 
+###Step 5. Manipulating Dates
+
+```{r}
+my.date
+
+my.date + 1
+
+my.date - 1
+
+my.date + 31
+```
+
+##Exercise 2.
+
+```{r}
+#Read zooData file into R using read.csv()
+inData <- read.csv("../../Data/zooData.csv", header = TRUE) 
+
+#put the inData in the zoo class
+wZ <- zoo(inData)
+
+head(inData)
+
+class(wZ)
+```
+
+##Exercise 3.
+
+
+```{r}
+#Read inData using read.zoo
+Z <- read.zoo(inData,format = "%d-%b-%y",index.column = 3)
+head(Z)
+```
+The two first columns (Symbol and Series) are of character datatype and need to be removed (inData[3:10]). 
+
+```{r}
+Z <- read.zoo(inData[3:10],format = "%d-%b-%y",index.column = "Date")
+head(Z)
+```
+
+##Exercise 4.
+
+**as.yearqtr** function returns the Quarter of a given date.
+
+```{r}
+#Get the mean of (Z$DeliveryVolume/Z$TotalVolume) per quarter, by using Aggregate function.
+aggregate(Z$DeliveryVolume/Z$TotalVolume, as.yearqtr, mean)
+```
+
+**as.yearmon** function returns the Year Month of a given date.
+```{r}
+#Get the mean of (Z$DeliveryVolume/Z$TotalVolume) per month, by using Aggregate function.
+aggregate(Z$DeliveryVolume/Z$TotalVolume, as.yearmon, mean)
+
+```
+
+##Exercise 5.
+
+**window()** to extract rows from start Date to end Date
+```{r}
+#Extract only the rows from 2015-Feb-01 to 2015-Feb-15 from Zoo object Z using window() command
+window(Z, start = as.Date("2015-02-01"), end = as.Date("2015-02-15"))
+
+```
+
+
+##Exercise 6
+
++ convert zoo data to xts
+
++ change the format with **indexFormat(z_xts)**
+
+
+```{r}
+#convert zoo data to xts
+z_xts <- as.xts(Z)
+
+#change the format to 01/02/19 
+indexFormat(z_xts) <- "%m/%d/%y"
+head(z_xts)
+
+```
+#estimate the periodicity of data
+```{r}
+
+periodicity(z_xts)
+```
+
+#Count months
+```{r}
+nmonths(z_xts)
+```
+
+
+#Count years
+```{r}
+nyears(z_xts)
+
+```
+##Exercise 7
+
+Split xts data by month and calculate mean
+
+```{r}
+z_xts_monthly <- split(z_xts,f="month")
+
+#Calculate mean with lapply
+lapply(z_xts_monthly,FUN=mean)
+
+```
+
+Note: you can split by "year". However this dataset has only one year time series.
+
+##What is an xts object?
+xts extends the popular zoo class.
+```{r}
+x <- matrix(1:4, ncol = 2, nrow = 2)
+x
+idx <- as.Date(c("2015-01-01", "2015-02-01"))
+idx
+
+X <- xts(x, order.by = idx)
+X 
+```
+##The xts constructor
+xts(x = NULL,      order.by = index(x),      frequency = NULL,     unique = NULL,     tzone = Sys.getenv("TZ"))
++ tzone specifies the time zone of your series 
++ unique forces times to be unique 
++ The index is increasing order of time
+
+##More than a matrix
+xts object behaves like a normal R matrices, but with special powers such as
+let you manipulate your data as a function of time.
+Special xts behavior:
++ xts is a matrix with associated times for each observation  
++ Subsets preserve matrix form 
++ Attributes are preserved i.e. a time-stamp that was acquired 
++ xts is a subclass of zoo
+
+```{r}
+# Load xts
+library(xts)
+
+# View the structure of ex_matrix
+str(ex_matrix)
+
+# Extract the 3rd observation of the 2nd column of ex_matrix
+ex_matrix[3, 2]
+
+# Extract the 3rd observation of the 2nd column of core 
+core[3, 2]
+```
+
+##Your first xts object
+xts objects are simple. Think of them as a matrix of observations combined with an index of corresponding dates and times.
+
+  xts = matrix + times
+The main xts constructor takes a number of arguments, but the two most important are + x for the data (must be a vector or matrix) 
++ order.by for the index (a vector which must be the same length or number of rows as x, be a proper time or date object (very important!), and be in increasing order)
+
+
+xts also allows you to bind arbitrary key-value attributes to your data. This lets you keep metadata about your object inside your object. To add these at creation, you simply pass additional name = value arguments to the xts() function.
+
+
+```{r}
+# Create the object data using 5 random numbers
+data<-rnorm(5)
+
+# Create dates as a Date class object starting from 2016-01-01, same length as data
+dates <- seq(as.Date("2016-01-01"), length = 5, by = "days")
+
+# Use xts() to create smith
+smith <- xts(x = data, order.by = dates)
+
+# Create bday (1899-05-08) using a POSIXct date class object
+bday <- as.POSIXct("1899-05-08")
+# Create hayek and add a new attribute called born
+hayek <- xts(x = data, order.by = dates, born = bday)
+```
+##Deconstructing xts
+Now we could examine an xts object from the inside.
+
+At the core of both xts and zoo is a simple R matrix with a few additional attributes. The most important of these attributes is the index. The index holds all the information we need for xts to treat our data as a time series.
+
+When working with time series, it will sometimes be necessary to separate your time series into its **core data** and **index** attributes for additional analysis and manipulation. 
+The core data is the matrix portion of xts. You can separate this from the xts object using **coredata()**. 
+
+The index portion of the xts object is available using the **index()** function. Note that both of these functions are **methods from the zoo class**, which xts extends.
+
+```{r}
+# Extract the core data of hayek
+hayek_core<-coredata(hayek)
+
+# View the class of hayek_core
+class(hayek_core)
+```
+
+```{r}
+# Extract the index of hayek
+hayek_index<-index(hayek)
+
+# View the class of hayek_index
+class(hayek_index)
+```
+
+##Time based indices
+xts objects get their power from the index attribute that holds the time dimension. One major difference between xts and most other time series objects in R is the ability to **use any one of various classes that are used to represent time**. Whether POSIXct, Date, or some other class, xts will convert this into an internal form to make subsetting as natural to the user as possible.
+
+```{r}
+a <- xts(x = 1:2, as.Date("2012-01-01") + 0:1)
+a[index(a)]
+```
+We can simply use date objects **to index** appropriate rows from your time series. You can think of this as effectively matching the rownames you see in the object. This works as anticipated for time objects because the rownames are really dates!
+
+For this exercise you'll create two time series using two different time classes. You will then subset each object using the other object's index.
+
+```{r}
+# Create dates
+dates <- as.Date("2016-01-01") + 0:4
+
+# Create ts_a
+ts_a <- xts(x = 1:5, order.by = dates)
+
+# Create ts_b
+ts_b <- xts(x = 1:5, order.by = as.POSIXct(dates))
+
+# Extract the rows of ts_a using the index of ts_b
+ts_a[index(ts_b)]
+```
+
+```{r}
+
+# Extract the rows of ts_b using the index of ts_a
+ts_b[index(ts_a)]
+```
+##Converting xts objects
+Reasons to convert xts objects:
++ to use a function that may not be time series aware or 
++ to use a particular aspect of xts with something that doesn't necessarily need to be a full time series.
+
+Luckily, it is quite easy to convert back and forth using the standard as.* style functionality provided in R (for example, as.POSIXct() or as.matrix()).
+
+xts provides methods to convert all of the major objects you are likely to come across. Suitable native R **types like matrix, data.frame, and ts** are supported, as well as contributed ones such as **timeSeries, fts and of course zoo**. **as.xts()** is the workhorse function to do the conversions to xts, and similar functions will provide the reverse behavior.
+```{r}
+# Load data from R datasets 
+data(sunspots) 
+class(sunspots) 
+```
+
+```{r}
+sunspots_xts <- as.xts(sunspots) 
+class(sunspots_xts)
+head(sunspots_xts) 
+
+
+```
+
+```{r}
+# Convert austres to an xts object called au
+au <- as.xts(austres)
+
+# Then convert your xts object (au) into a matrix am
+am <- as.matrix(au)
+
+# Inspect the head of am
+head(am)
+```
+```{r}
+# Convert the original austres into a matrix am2
+am2<- as.matrix(austres)
+
+# Inspect the head of am2
+head(am2)
+
+```
+##Importing data
+Reading a csv file from disk using the base-R **read.csv**. After you read the data, the next step is to **convert it to xts**. Here you will be required to use the **xts() constructor** as well as deal with converting non-standard dates into something that xts understands.
+
+Then we will be using **read.zoo** and then **convert the zoo object into an xts object**.
+
+Read data into R using built in (or external) functions 
++ read.table(), 
++ read.csv(), and 
++ read.zoo()
+
+Coerce data to xts using as.xts()
+```{r}
+#as.xts(read.table("file")
+#as.xts(read.zoo("file")
+
+```
+
+```{r}
+# Create dat by reading tmp_file
+dat<-read.csv(tmp_file)
+
+# Convert dat into xts
+xts(dat, order.by = as.Date(rownames(dat), "%m/%d/%Y"))
+
+# Read tmp_file using read.zoo
+dat_zoo <- read.zoo(tmp_file, index.column = 0, sep = ",", format = "%m/%d/%Y")
+
+# Convert dat_zoo to xts
+dat_xts <- xts(dat_zoo)
+
+```
+##Exporting xts objects
+
+There are two main use cases for exporting xts objects.
++ to require an object to persist **across sessions** for use in later analysis. In this case, it is almost always best to use **saveRDS() and readRDS()** to serialize single R objects.
+
++ to share the results of your analysis with others, often expecting the data to be consumed by processes unaware of both R and xts, by using the zoo function **write.zoo()**. 
+
+```{r}
+# Convert sunspots to xts using as.xts().
+sunspots_xts<-as.xts(sunspots)
+
+# Get the temporary file name
+tmp <- tempfile()
+
+# Write the xts object using zoo to tmp 
+write.zoo(sunspots_xts, sep = ",", file = tmp)
+
+# Read the tmp file. FUN = as.yearmon converts strings such as Jan 1749 into a proper time class
+sun <- read.zoo(tmp, sep = ",", FUN = as.yearmon)
+
+# Convert sun into xts. Save this as sun_xts
+sun_xts<-as.xts(sun)
+
+```
+
+
+
+```{r}
+data(Mishkin, package = "Ecdat")
+#Mishkin
+```
+
+```{r}
+interest <- as.ts(Mishkin[,4])
+#head(interest)
+ts.plot(interest) ; acf(interest)
+```
+```{r}
+AR_interest <- arima(interest, order = c(1, 0, 0))
+print(AR_interest)
+```
+```{r}
+ts.plot(interest)
+AR_interest_fitted <- interest - residuals(AR_interest)
+points(AR_interest_fitted, type = "l", col = "red", lty = 2)
+```
+
+```{r}
+xts_interest<- as.xts(interest)
+#Count months
+nmonths(xts_interest)
+
+#Count years
+nyears(xts_interest)
+```
+
+```{r}
+#head(xts_interest)
+indexFormat(xts_interest) <- "%m/%d/%y"
+#Find the ending date in this dataset.
+tail(xts_interest)
+```
+
+```{r}
+#Split by year
+xts_interest_yearly <- split(xts_interest,f="year")
+
+#Calculate mean with lapply
+lapply(xts_interest_yearly,FUN=mean)
+
+```

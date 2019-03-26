@@ -1,0 +1,116 @@
+---
+title: "naive_bayes"
+author: "Helen Yezerets"
+date: "February 28, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Computing probabilities
+The where9am data frame contains 91 days (thirteen weeks) worth of data in which Brett recorded his location at 9am each day as well as whether the daytype was a weekend or weekday.
+
+Using the conditional probability formula below, you can compute the probability that Brett is working in the office, given that it is a weekday.
+
+P(A|B)=P(A and B)/P(B)
+Calculations like these are the basis of the Naive Bayes destination prediction model you'll develop in later exercises.
+
+```{r}
+# Compute P(A) 
+p_A <- nrow(subset(where9am, location == "office")) / nrow(where9am)
+
+# Compute P(B)
+p_B <- nrow(subset(where9am, daytype == "weekday")) / nrow(where9am)
+
+# Compute the observed P(A and B)
+p_AB <- nrow(subset(where9am, location == "office" & daytype == "weekday")) / nrow(where9am)
+
+# Compute P(A | B) and print its value
+p_A_given_B <- p_AB / p_B
+p_A_given_B
+```
+```{r}
+# Load the naivebayes package
+library(naivebayes)
+
+# Build the location prediction model
+locmodel <- naive_bayes(location~daytype, data = where9am)
+
+
+# Predict Thursday's 9am location
+predict(locmodel,thursday9am)
+
+# Predict Saturdays's 9am location
+predict(locmodel,saturday9am)
+```
+##Examining "raw" probabilities
+The naivebayes package offers several ways to peek inside a Naive Bayes model.
+
+Typing the name of the model object provides the a priori (overall) and conditional probabilities of each of the model's predictors. If one were so inclined, you might use these for calculating posterior (predicted) probabilities by hand.
+
+Alternatively, R will compute the posterior probabilities for you if the type = "prob" parameter is supplied to the predict() function.
+
+Using these methods, examine how the model's predicted 9am location probability varies from day-to-day. The model locmodel that you fit in the previous exercise is in your workspace.
+
+```{r}
+# The 'naivebayes' package is loaded into the workspace
+# and the Naive Bayes 'locmodel' has been built
+
+# Examine the location prediction model
+locmodel
+
+# Obtain the predicted probabilities for Thursday at 9am
+predict(locmodel, thursday9am , type = "prob")
+
+# Obtain the predicted probabilities for Saturday at 9am
+predict(locmodel,saturday9am, type = "prob")
+```
+One event is **independent** of another if knowing one doesn't give you information about how likely the other is. For example, knowing if it's raining in New York doesn't help you predict the weather in San Francisco. The weather events in the two cities are independent of each other.
+
+##The Naive Bayes algorithm got its name because it makes a "naive" assumption about event independence.
+
+What is the purpose of making this assumption?
+
+The joint probability calculation is simpler for independent events.The joint probability of independent events can be computed much simpler by multiplying their individual probabilities.
+
+```{r}
+# Build a NB model of location
+locmodel <- naive_bayes(location~daytype+hourtype,data=locations)
+
+# Predict Brett's location on a weekday afternoon
+predict(locmodel, weekday_afternoon)
+
+# Predict Brett's location on a weekday evening
+predict(locmodel, weekday_evening)
+```
+
+##Preparing for unforeseen circumstances
+While Brett was tracking his location over 13 weeks, he never went into the office during the weekend. Consequently, the joint probability of P(office and weekend) = 0.
+
+Explore how this impacts the predicted probability that Brett may go to work on the weekend in the future. Additionally, you can see how using the Laplace correction will allow a small chance for these types of unforeseen circumstances.
+
+```{r}
+
+# Observe the predicted probabilities for a weekend afternoon
+predict(locmodel, weekend_afternoon, type='prob')
+
+# Build a new model using the Laplace correction
+locmodel2 <- naive_bayes(location~daytype+hourtype,data=locations, laplace=1)
+
+# Observe the new predicted probabilities for a weekend afternoon
+predict(locmodel2, weekend_afternoon, type='prob')
+```
+
+Adding the Laplace correction allows for the small chance that Brett might go to the office on the weekend in the future.
+
+The small probability added to every outcome ensures that they are all possible even if never previously observed.
+
+Numeric data is often **binned** before it is used with Naive Bayes. Which of these are examples of binning?
+* age values recoded as 'child' or 'adult' categories
+* geographic coordinates recoded into geographic regions (West, East, etc.)
+* test scores divided into four groups by percentile
+
+
+
