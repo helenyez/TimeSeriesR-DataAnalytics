@@ -137,6 +137,8 @@ fit21 = lm(cmort~ trend + temp + temp2 + part, na.action=NULL)
 fit20 = lm(cmort~ trend + temp + temp2, na.action=NULL)
 
 fit19 = lm(cmort~ trend + temp, na.action=NULL)
+
+
 ```
 
 ##Summary statistics
@@ -247,7 +249,7 @@ Create **pairs** with all three columns. Hint: you can extract each column with 
 
 ```{r}
 dev.new()
-pairs(cbind(Unemployment=econ5$unemp, GNP=econ5$gnp, GovInv=econ5$govinv))
+pairs(cbind(Unemployment=econ5$unemp, GNP=econ5$gnp, GovInv=econ5$govinv, Consump= econ5$consum, Private=econ5$prinv))
 
 ```
 

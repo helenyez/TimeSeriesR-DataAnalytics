@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Source: Manipulating Time Series Data in R with xts and zoo - https://www.datacamp.com/courses/manipulating-time-series-data-in-r-with-xts-zoo
+
 ##Querying for dates
 One of the most powerful aspects of working with time series in xts is the ability to quickly and efficiently specify dates and time ranges for subsetting.
 
@@ -31,6 +33,7 @@ jan_march <- x["2016/20160322"]
 length(jan_march)
 82 == length(jan_march)
 ```
+
 
 ##Extracting recurring intraday intervals
 To view only a subset of time for each day over multiple days using xts, you can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
@@ -112,20 +115,15 @@ Extract a very specific subset of observations by linking together multiple call
 ```{r}
 last(first(Temps, '1 week'), '3 days') 
 ```
-You will reconfigure the example above using the temps data from the previous exercise. The trick to using such a complex command is to work from the inside function, out.
 
 ```{r}
 # Extract the first three days of the second week of temps
 first(last(first(temps, "2 weeks"), "1 week"), "3 days")
 ```
 ##Matrix arithmetic - add, subtract, multiply, and divide in time!
-xts objects respect time. By design when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes. This may be surprising when first encountered.
+xts objects respect time. By design when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes.
 
-The reason for this is that you want to preserve the point-in-time aspect of your data, assuring that you don't introduce accidental look ahead (or look behind!) bias into your calculations.
-
-What this means in practice is that you will sometimes be tasked with handling this behavior if you want to preserve the dimensions of your data.
-
-Your options include:
+The reason for this is that you want to preserve the point-in-time aspect of your data, assuring that you don't introduce accidental look ahead (or look behind!) bias into your calculations. You want to preserve the dimensions of your data.
 
 Use `coredata()` or `as.numeric()` (drop one to a matrix or vector).
 Manually shift index values - i.e. use lag().
@@ -144,10 +142,7 @@ xts respects time and will only return the intersection of times when doing vari
 
 re-indexing your data before an operation makes it possible to preserve the dimensions of your data by leveraging the same mechanism that xts uses internally in its own Ops method (the code dispatched when you call + or similar).
 
-The third way involves modifying the two series you want by assuring you have some union of dates - the dates you require in your final output. Use
-
-`merge(b, index(a))`
-
+The third way involves modifying the two series you want by assuring you have some union of dates - the dates you require in your final output. Use `merge(b, index(a))`
 
 ```{r}
 # Add a to b, and fill all missing rows of b with 0

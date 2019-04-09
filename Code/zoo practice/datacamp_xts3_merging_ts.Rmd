@@ -56,8 +56,9 @@ No merge for data.frames with various column types.
 ##Fill missing values using last or previous observation
 The xts package leverages the power of zoo for help with missingness. Example: **na.locf()** - last observation carried forward approach. It both preserves the last known value and prevents any look-ahead bias from entering into the data.
 
-You can also apply next observation carried backward by setting **fromLast = TRUE**.
+Apply next observation carried backward by setting **fromLast = TRUE**.
 
+```{r}
 # Last obs. carried forward
 na.locf(x)                
 
@@ -69,7 +70,7 @@ temps_last<-na.locf(temps)
 
 # Fill missing values in temps using the next observation
 temps_next<-na.locf(temps, fromLast = TRUE) 
-
+```
 ##NA interpolation using na.approx()
 * It may be that a series is missing an observation due to a higher frequency sampling than the generating process. 
 * You might also encounter an observation that is in error, yet expected to be somewhere between the values of its neighboring observations.
@@ -88,9 +89,10 @@ Both zoo and xts implement this behavior, and in fact extend it from the ts orig
 
 For historical reasons in R, zoo uses a convention for the sign of k in which negative values indicate lags and positive values indicate leads. That is, in zoo lag(x, k = 1) will shift future values one step back in time. This is inconsistent with the vast majority of the time series literature, but is consistent with behavior in base R. xts implements the exact opposite, namely for a positive k, the series will shift the last value in time one period forward; this is consistent with intuition, but quite different than zoo.
 
-In this exercise, you will construct a single xts object with three columns. The first column is data one day ahead, the second column is the original data, and the third column is the one day behind - all using xts. A simple xts object, x, has been loaded into your workspace.
+Construct a single xts object with three columns. The first column is data one day ahead, the second column is the original data, and the third column is the one day behind - all using xts. A simple xts object, x, has been loaded into your workspace.
 
-# Your final object
+```{r}
+# final object
 cbind(lead_x, x, lag_x)
 
 # Create a leading object called lead_x
@@ -99,16 +101,16 @@ lead_x <- lag(x, k = -1)
 # Create a lagging object called lag_x
 lag_x<-lag(x, k=1)
 
-# Merge your three series together and assign to z
+# Merge three series together and assign to z
 z<-merge(lead_x,x, lag_x)
-
+```
 ##Calculate a difference of a series using diff()
 Another common operation on time series, typically on those that are non-stationary, is to take a difference of the series. The number of differences to take of a series is an application of recursively calling the difference function n times.
 
 A simple way to view a single (or "first order") difference is to see it as x(t) - x(t-k) where k is the number of lags to go back. Higher order differences are simply the reapplication of a difference to each prior result.
 
 In R, the difference operator for xts is made available using the diff() command. This function takes two arguments of note. The first is the lag, which is the number of periods, and the second is differences, which is the order of the difference (e.g. how many times diff() is called).
-
+```{r}
 # These are the same
 diff(x, differences = 2)
 diff(diff(x))
@@ -120,6 +122,7 @@ merge(head(diff_by_hand), head(diff(AirPass)))
 
 # Calculate the first order (how many times it is called) 12 month (lag=12) difference of AirPass
 diff(AirPass, lag = 12, defferences = 1)
+```
 
 ##What is the key difference in lag between xts and zoo
 As you've seen, generating lags and leads are an important tool in your arsenal for handling time series data in R. However, because xts employs slightly different procedures for generating lags and leads compared with zoo of base-R, you have to be very precise in your calls to lag().
