@@ -1,0 +1,153 @@
+---
+title: "datacamp_xts2_queries"
+author: "Helen Yezerets"
+date: "February 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##References: Manipulating Time Series Data in R with xts and zoo - https://www.datacamp.com/courses/manipulating-time-series-data-in-r-with-xts-zoo
+
+##Querying for dates
+One of the most powerful aspects of working with time series in xts is the ability to quickly and efficiently specify dates and time ranges for subsetting.
+
+Date ranges can be extracted from xts objects by simply specifying the period(s) you want using special character strings in your subset.
+
+A["20090825"]       ## Aug 25, 2009
+A["201203/201212"]  ## Mar to Dec 2012
+A["/201601"]        ## Up to and including January 2016
+
+Extract a range of dates using the ISO-8601 feature of xts. The create subset of your new object with specific start and end dates using the same notation.
+
+```{r}
+# Select all of 2016 from x
+x_2016 <- x["2016"]
+
+# Select January 1, 2016 to March 22, 2016
+jan_march <- x["2016/20160322"]
+
+# Verify that jan_march contains 82 rows
+length(jan_march)
+82 == length(jan_march)
+```
+
+
+##Extracting recurring intraday intervals
+To view only a subset of time for each day over multiple days using xts, you can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
+
+Use the special T/T notation designed for intraday repeating intervals.
+
+# Intraday times for all days
+NYSE["T09:30/T16:00"] 
+
+```{r}
+# Extract extract recurring morning hours between 8AM and 10AM from irreg ts
+morn_2010 <- irreg["T08:00/T10:00"]
+
+# Extract the observations in morn_2010 for January 13th, 2010
+morn_2010["20100113"]
+
+```
+##Row selection with time objects
+Often you may need to subset an existing time series with a set of Dates, or time-based objects. These might be from as.Date(), as.POSIXct(), or a variety of other classes, extract relevant observations using a vector of dates in brackets.
+
+```{r}
+# Subset x using the vector dates
+x[dates]
+
+# Subset x using vector dates as POSIXct
+x[as.POSIXct(dates)]
+```
+
+##Update and replace elements
+Use either ISO-8601 strings(for continuous blocks of time), or date objects, logicals, or integers (for individual observations located sporadically throughout your data) to locate the rows you want to replace. 
+*Use Case:* to replace known intervals or observations with NA, say due to a malfunctioning sensor on a particular day or a set of outliers given a holiday.
+
+```{r}
+# Load fund data
+data(edhec, package = "PerformanceAnalytics")
+head(edhec["2007-01", 1])
+head(edhec["2007-01/2007-03", 1])
+
+```
+
+
+```{r}
+# Replace the values in x contained in the dates vector with NA
+x[dates] <-NA
+x["2016-06-11"]
+```
+
+```{r}
+# Replace all values in x for dates starting June 9, 2016 with 0
+x[index(x) > '2016-06-08']<-0
+
+# Verify that the value in x for June 11, 2016 is now indeed 0
+x["2016-06-11"]
+    
+```
+
+##Find the first or last period of time
+Sometimes you need to locate data by relative time, you describe a relative position in time. A simple example would be something like the last 3 weeks of a series, or the first day of current month.
+
+Without a time aware object, this gets quite complicated very quickly. Luckily, xts has the necessary prerequisites built in for you to use with very little learning required. Using the first() and last() functions it is actually quite easy!
+
+For this exercise, you'll extract relative observations from a data set called temps, a time series of summer temperature data from Chicago, IL, USA.
+
+```{r}
+# Create lastweek using the last 1 week of temps
+lastweek <- last(temps, "1 week")
+
+# Print the last 2 observations in lastweek
+last(lastweek, "2 days")
+
+# Extract all but the first two days of lastweek
+first(lastweek, "-2 days")
+```
+
+##Combining first and last
+Extract a very specific subset of observations by linking together multiple calls to first() and last().
+
+# Last 3 days of first week
+```{r}
+last(first(Temps, '1 week'), '3 days') 
+```
+
+```{r}
+# Extract the first three days of the second week of temps
+first(last(first(temps, "2 weeks"), "1 week"), "3 days")
+```
+##Matrix arithmetic - add, subtract, multiply, and divide in time!
+xts objects respect time. By design when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes.
+
+The reason for this is that you want to preserve the point-in-time aspect of your data, assuring that you don't introduce accidental look ahead (or look behind!) bias into your calculations. You want to preserve the dimensions of your data.
+
+Use `coredata()` or `as.numeric()` (drop one to a matrix or vector).
+Manually shift index values - i.e. use lag().
+Reindex your data (before or after the calculation).
+
+```{r}
+# Add a and b
+a+b
+
+# Add a with the numeric value of b
+a+as.numeric(b)
+
+```
+##Math with non-overlapping indexes
+xts respects time and will only return the intersection of times when doing various mathematical operations.
+
+re-indexing your data before an operation makes it possible to preserve the dimensions of your data by leveraging the same mechanism that xts uses internally in its own Ops method (the code dispatched when you call + or similar).
+
+The third way involves modifying the two series you want by assuring you have some union of dates - the dates you require in your final output. Use `merge(b, index(a))`
+
+```{r}
+# Add a to b, and fill all missing rows of b with 0
+a + merge(b, index(a), fill = 0)
+
+# Add a to b and fill NAs with the last observation
+a + merge(b, index(a), fill = na.locf)
+```

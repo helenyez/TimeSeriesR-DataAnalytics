@@ -1,0 +1,196 @@
+---
+title: "TS_StohasticProcess"
+author: "Helen Yezerets"
+date: "February 2, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+install.packages("astsa")
+library(astsa) 
+plot(jj, type="o", ylab="Quarterly Earnings per Share")
+
+```
+
+
+```{r}
+library(TTR)
+djia = getYahooData("^DJI", start=20060420, end=20160420, freq="daily")
+library(xts)
+djiar = diff(log(djia$Close))[-1] # approximate returns
+plot(djiar, main="DJIA Returns", type="n")
+lines(djiar)
+```
+
+```{r}
+crazy <- function(num) {
+  x <- c() #placeholder for a vector
+  for (n in 1:num) { x[n] <- mean(rcauchy(n)) } # creates vector of means of random Cauchy variates 
+  plot(x, type="l", xlab="sample size", ylab="sample mean")
+}
+
+crazy(200) #call function crazy
+
+```
+##R.4 Time Series Primer
+```{r}
+#install.packages("astsa")
+#library(astsa)
+```
+
+To create a time series object, use the command **ts**. Related commands are **as.ts** to coerce an object to a time series and **is.ts** to test whether an object is a time series. First, make a small data set:
+```{r}
+(mydata = c(1,2,3,2,1) ) # make it and view it
+```
+```{r}
+#Now make it a time series:
+(mydata = as.ts(mydata) )
+```
+
+Make it an annual time series that starts in 1950:
+```{r}
+(mydata = ts(mydata, start=1950) )
+```
+
+Now make it a quarterly time series that starts in 1950-III:
+```{r}
+(mydata = ts(mydata, start=c(1950,3), frequency=4) )
+```
+```{r}
+time(mydata) # view the sampled times
+```
+
+To use part of a time series object, use window():
+```{r}
+(x = window(mydata, start=c(1951,1), end=c(1951,3) ))
+```
+
+Next, we'll look at lagging and differencing. 
+First make a simple series, xt :
+```{r}
+x = ts(1:5)
+```
+Now, column bind (cbind) lagged values of xt and you will notice that lag(x) is
+forward lag, whereas lag(x, -1) is backward lag.
+
+```{r}
+cbind(x, lag(x), lag(x,-1))
+```
+
+Compare cbind and ts.intersect:
+```{r}
+ts.intersect(x, lag(x,1), lag(x,-1))
+```
+
+To difference a series, rxt = xt ???? xt????1, use
+diff(x) but note that diff(x, 2)
+is not second order differencing,  do one of these:
+
+```{r}
+diff(diff(x))
+diff(x, diff=2) # same thing
+```
+and so on for higher order differencing.
+We will also make use of regression via lm(). First, suppose we want to fit a
+simple linear regression, y =  alfa+ beta*x + epsilon. In R, the formula is written as y~x:
+```{r}
+set.seed(1999)
+x = rnorm(10)
+y = x + rnorm(10)
+summary(fit <- lm(y~x) )
+```
+
+```{r}
+plot(x, y) # draw a scatterplot of the data 
+abline(fit) # add the fitted line to the plot 
+```
+
+##All sorts of information can be extracted from the lm object, which we called fit.
+For example,
+```{r}
+resid(fit) # will display the residuals 
+fitted(fit) # will display the fitted values
+lm(y ~ 0 + x) # will exclude the intercept 
+```
+You have to be careful if you use lm() for lagged values of a time series. If you use lm(), then what you have to do is align the series using ts.intersect.
+Please read the warning Using time series in the lm() help file [help(lm)]. Here
+is an example regressing astsa data, weekly cardiovascular mortality (cmort) on
+we create ded, which consists of the intersection of the three series:
+```{r}
+ded = ts.intersect(cmort, part, part4=lag(part,-4))
+```
+Now the series are all aligned and the regression will work.
+```{r}
+summary(fit <- lm(cmort~part+part4, data=ded, na.action=NULL) )
+```
+
+There was no need to rename lag(part,-4) to part4, it's just an example of what
+you can do.
+An alternative to the above is the package **dynlm**, which has to be installed. After
+the package is installed, the previous example may be run as follows:
+```{r}
+#install.packages("dynlm")
+library(dynlm) # load the package
+fit = dynlm(cmort~part + L(part,4)) # no new data file needed
+summary(fit)
+```
+The output is identical to the lm output. To fit another model, for example, add the
+temperature series tempr, the advantage of dynlm is that a new data file does not have
+to be created. We could just run
+```{r}
+summary(dynlm(cmort~ tempr + part + L(part,4)) )
+```
+```{r}
+#Regression model for JJ
+trend = time(jj) - 1970 # helps to 'center' time
+Q = factor(cycle(jj) ) # make (Q)uarter factors
+reg = lm(log(jj)~0 + trend + Q, na.action=NULL) # no intercept
+model.matrix(reg) # view the model design matrix
+
+```
+```{r}
+summary(reg) # view the results (not shown)
+```
+The workhorse for ARIMA simulations is arima.sim. Here are some examples;
+```{r}
+x = arima.sim(list(order=c(1,0,0), ar=.9), n=100) + 50 # AR(1) w/mean 50
+x = arima.sim(list(order=c(2,0,0), ar=c(1,-.9)), n=100) # AR(2)
+x = arima.sim(list(order=c(1,1,1), ar=.9 ,ma=-.5), n=200) # ARIMA(1,1,1)
+```
+Some oscillations are taken out. A linear combination of values in a time series such as in (1.1) is referred to,generically, as a **filtered series**; hence the command filter in the following code
+```{r}
+w = rnorm(500,0,1) # 500 N(0,1) variates
+v = filter(w, sides=2, filter=rep(1/3,3)) # moving average
+par(mfrow=c(2,1))
+plot.ts(w, main="white noise")
+plot.ts(v, ylim=c(-3,3), main="moving average")
+```
+
+```{r}
+set.seed(154) # so you can reproduce the results
+w = rnorm(200); x = cumsum(w) # two commands in one line
+wd = w +.2; xd = cumsum(wd)
+plot.ts(xd, ylim=c(-5,55), main="random walk", ylab='')
+lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
+```
+```{r faithful}
+data(faithful)
+(FT<-faithful)
+x<-FT$eruptions
+y<-FT$waiting
+cov(x,y)
+```
+
+```{r}
+cov(x, y,  method = c("pearson", "kendall", "spearman"))
+```
+
+```{r}
+cor(x, y,    method = c("pearson", "kendall", "spearman"))
+
+```
+
+#Referencecs: Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its Applications With R Examples (Fourth Edition). Springer.

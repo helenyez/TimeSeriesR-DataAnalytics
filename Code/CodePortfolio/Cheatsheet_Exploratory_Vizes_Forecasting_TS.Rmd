@@ -1,0 +1,251 @@
+---
+title: "Forecasting Using R by Rob Hyndman ( https://www.datacamp.com/courses/forecasting-using-r)"
+author: "Helen Yezerets"
+date: "April 7, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##References: Forecasting Using R by Rob Hyndman ( https://www.datacamp.com/courses/forecasting-using-r)
+
+#White Noise is just a time series of iid data
+```{r}
+set.seed(3) # Reproducibility
+wn <- ts(rnorm(36)) # Create White noise
+autoplot(wn) # Plot!
+```
+## WN assumptions:
+### 95% of values ~= 0  and lay inside the blue lines
+### They should be uncorrelated
+### They should have mean zero
+Useful properties (for computing prediction intervals)
+### They should have constant variance
+### They should be normally distributed
+```{r}
+ggAcf(wn) +
+ggtitle("Sample ACF for white noise")
+```
+##Example: Is it WN?
+```{r}
+autoplot(pigs/1000) +
+xlab("Year") +
+ylab("thousands") +
+ggtitle("Monthly number of pigs slaughtered in Victoria")
+
+ggAcf(pigs) +
+ggtitle("ACF of monthly pigs slaughtered in Victoria")
+
+```
+##Not a white noise series: there is info in the data that can be used to forecast future values
+
+#Use Ljung-Box test to check for WN
+The Ljung-Box test considers the first h autocorrelation values together.
+
+
+```{r}
+Box.test(pigs, lag = 24, fitdf = 0, type = "Lj")
+
+```
+A significant test (small p-value < 2.2e-16) indicates the data are probably not
+white noise.
+
+#Summary: 
+We can test for white noise by looking at an
+ACF plot
+or by doing a Ljung-Box test
+
+#Forecasts and potential futures
+The 80% forecast intervals should contain 80% of the future observations
+The 95% forecast intervals should contain 95% of the future observations
+
+
+##Fitted values and residuals
+```{r}
+#Requires fpp2 package for naive()
+library(fpp2)
+```
+
+##Example: forecast oil prodiction
+```{r}
+fc <- naive(oil)
+autoplot(oil, series = "Data") + xlab("Year") +
+autolayer(fitted(fc), series = "Fitted") +
+ggtitle("Oil production in Saudi Arabia")
+#Residuals
+autoplot(residuals(fc))
+```
+
+##Residuals should look like WN
+###Test for WN with checkresiduals() function.
+```{r}
+checkresiduals(fc)
+```
+##p-value = 0.2824 (>0.05) - looks good for WN
+
+#Example: CBE[,1] - chocolate consumption
+```{r}
+www <- "../../Data/cbe.dat" #load data 
+CBE <- read.table(www, header = T)
+Ch.ts <- ts(CBE[, 1], start = 1958, frequency = 12) #use monthly data
+ch <- naive(Ch.ts)
+autoplot(Ch.ts, series = "Data") + xlab("Year") +
+autolayer(fitted(ch), series = "Fitted") +
+ggtitle("Chocolate Consumption")
+#Residuals
+autoplot(residuals(ch))
+checkresiduals(ch)
+```
+
+```{r}
+frequency(Ch.ts)
+train_ch <- window(Ch.ts, end = c(1980,12)) #training data
+test_ch <- window(Ch.ts, start = c(1981,1))   #test data
+ch_train <- naive(train_ch, h = 100) #observed value
+autoplot(ch_train) +
+autolayer(test_ch, series = "Test data") # red line of actual test data
+
+```
+
+#Check accuracy for chocolate data
+```{r}
+accuracy(ch_train, test_ch)
+```
+
+##Residuals should look like WN
+###Test for WN with checkresiduals() function.
+```{r}
+checkresiduals(fc)
+```
+
+#Training and Testing
+
+```{r}
+training <- window(oil, end = 2003) #training data
+test <- window(oil, start = 2004)   #test data
+fc_train <- naive(training, h = 10) #observed value
+autoplot(fc_train) +
+autolayer(test, series = "Test data") # red line of actual test data
+
+```
+##Calculate accuracy on test data.
+Forcast error is the difference between observed value and its forecast in the test set.
+```{r}
+accuracy(fc_train, test)
+```
+Mean Absolute Error
+Mean Squared Error
+Mean Absolute Percentage Error
+Mean Absolute Scaled Error
+
+##tsCV function
+Choose the model with the smallest MSE computed using time series cross-validation
+Compute it at the forecast horizon of most interest to you
+
+```{r}
+e <- tsCV (oil, forecastfunction = naive, h = 1) #h=1 give the same results as residuals
+mean(e^2 , na.rm = TRUE)
+```
+
+```{r}
+#Calculate MSE
+sq <- function(u){u^2}
+for(h in 1:10)
+  {
+    oil %>% tsCV(forecastfunction = naive, h = h) %>%
+    sq() %>% mean(na.rm = TRUE) %>% print()
+  }
+
+```
+##MSE increases with time. Take the lowest
+
+#variance stabilization by Increasing strength
+Square Root -> Cube Root -> Logarithm -> Inverse
+
+#Example: usmelec - US monthly net electricity generation
+```{r}
+#Initial data
+autoplot(usmelec) +
+xlab("Year") + ylab("") +
+ggtitle("US monthly net electricity generation")
+
+#Square Root (^0.5)
+autoplot(usmelec^0.5) +
+xlab("Year") + ylab("") +
+ggtitle("Square root electricity generation")
+
+
+#Cube Root (^0.33333)
+autoplot(usmelec^0.33333) +
+xlab("Year") + ylab("") +
+ggtitle("Cube root electricity generation")
+
+#Log()
+autoplot(log(usmelec)) +
+xlab("Year") + ylab("") +
+ggtitle("Log electricity generation")
+
+#Inverse (-1/data)
+autoplot(-1/usmelec) +
+xlab("Year") + ylab("") +
+ggtitle("Inverse electricity generation")
+
+```
+
+
+##Box-Cox transformation
+
+```{r}
+BoxCox.lambda(usmelec)
+```
+
+##Use as lambda for back-trasfomations
+```{r}
+#Back transformation
+usmelec %>%
+ets(lambda = -0.57) %>%
+forecast(h = 60) %>%
+autoplot()
+```
+
+#ARIMA models
+##Example: electricity
+```{r}
+autoplot(usnetelec) +
+xlab("Year") +
+ylab("billion kwh") +
+ggtitle("US net electricity generation")
+
+fit <- auto.arima(usnetelec)
+summary(fit) #check for drift and AICc
+```
+```{r}
+fit %>% forecast() %>% autoplot()
+```
+##How does auto.arima() work?
+Hyndman-Khandakar algorithm:
+Select number of differences d via unit root tests
+Select p and q by minimizing AICc
+Estimate parameters using maximum likelihood estimation
+Use stepwise search to traverse model space, to save time
+
+#Seasonal ARIMA models
+##Example: Monthly retail debit card usage in Iceland
+
+```{r}
+autoplot(debitcards) +
+xlab("Year") + ylab("million ISK") +
+ggtitle("Retail debit card usage in Iceland")
+
+fit <- auto.arima(debitcards, lambda = 0)
+fit #Check ARIMA
+```
+
+```{r}
+fit %>%
+forecast(h = 24) %>%
+autoplot() + xlab("Year") #h=24 number of months to forecast
+```
+
+

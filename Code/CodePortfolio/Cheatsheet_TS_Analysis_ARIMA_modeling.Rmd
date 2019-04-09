@@ -1,0 +1,254 @@
+---
+title: "ARIMA_modeling"
+author: "Helen Yezerets"
+date: "March 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Source: 
+Chatterjee, S. (2018, February 05). Time Series Analysis Using ARIMA Model In R. Retrieved March 25, 2019, from https://datascienceplus.com/time-series-analysis-using-arima-model-in-r/
+
+##What is ARIMA (AutoRegressive Integrated Moving Average) modeling
+AR: lags of the differenced series
+I : number of difference used to make the time series stationary
+MA: lags of errors
+
+##Assumptions of ARIMA model
+1. Does not depend on time (stationary).Example: white noise series and series with cyclic behavior.
+2. Univariate data (one variable). Auto-regression works with the past values.
+
+```{r}
+#Use astsa package
+library(astsa)
+data()                     # use this command to view all the loaded data 
+```
+
+```{r chicken}
+#Convert dataset to ts using Monthly price of a pound of chicken
+tsData = ts(chicken, frequency = 12)
+```
+
+#Understand the four components of a time series data:
+
+##Observed - the actual data plot
+##Trend - the overall upward or downward movement of the data points 
+A long-term increase or decrease in the data is referred to as a trend. It is not necessarily linear. It is the underlying pattern in the data over time.
+##Seasonal- any monthly/yearly pattern of the data points 
+When a series is influenced by seasonal factors i.e. quarter of the year, month or days of a week seasonality exists in the series. It is always of a fixed and known period. E.g. - A sudden rise in sales during Christmas, etc.
+Cyclic: 
+When data exhibit rises and falls that are not of the fixed period we call it a cyclic pattern. For e.g. - duration of these fluctuations is usually of at least 2 years.
+
+##Random - unexplainable part of the data
+```{r chicken}
+components.ts = decompose(tsData)
+plot(components.ts)
+```
+#Test for stationarity of the data:
+-constant mean
+-constant correlation over time
+```{r}
+stationary.ts = diff(tsData)
+plot(stationary.ts)
+
+#cor.test(tsData, lag(tsData, -1))
+#cor.test(tsData, lag(tsData, -6))
+```
+```{r}
+#To remove seasonality from the data, we subtract the seasonal component from the original series 
+seasonally_adj.ts <- tsData - components.ts$seasonal
+#difference it to make it stationary
+stationary.ts <- diff(seasonally_adj.ts, differences=1)
+plot(stationary.ts)
+```
+```{r}
+acf(stationary.ts, lag.max=34)
+pacf(stationary.ts, lag.max=34)
+```
+
+```{r}
+fitARIMA <- arima(tsData, order=c(1,1,1),seasonal = list(order = c(1,0,0), period = 12),method="ML")
+library(lmtest)
+coeftest(fitARIMA) 
+```
+
+```{r}
+#Remove insignificant coefficients
+confint(fitARIMA)
+```
+
+```{r}
+acf(fitARIMA$residuals)
+library(FitAR)
+boxresult <- LjungBoxTest (fitARIMA$residuals,k=2,StartLag=1)
+plot(boxresult[,3],main= "Ljung-Box Q Test", ylab= "P-values", xlab= "Lag")
+qqnorm(fitARIMA$residuals)
+qqline(fitARIMA$residuals)
+```
+
+```{r}
+library(forecast)
+#Find the best model
+auto.arima(tsData, trace=TRUE)
+```
+
+```{r}
+#n.ahead specifies the number of steps to predict
+predict(fitARIMA,n.ahead = 5)
+```
+
+
+
+
+Source: Chapter 3. ARIMA Model (Shumway and Stooffer, 2016)
+```{r}
+#Generate and plot MA
+x <- arima.sim(list(order = c(0, 0, 1), ma = 0.9), n = 100)
+plot(x, main="MA(1)")
+```
+```{r}
+#Generate and plot AR
+x <- arima.sim(list(order = c(2, 0, 0), ar = c(0, -0.9)), n = 100)
+plot(x, main="AR(2)")
+```
+
+```{r}
+#Estimate AR(2) with mean =50
+x <- arima.sim(list(order = c(2, 0, 0),ar = c(1.5, -.75)),n = 200) + 50
+#Analysis of residuals
+x_fit <- sarima(x, p = 2, d = 0, q = 0)
+x_fit$ttable
+```
+```{r}
+#Estimate MA(1) with mean=0
+y <- arima.sim(list(order = c(0, 0, 1), ma = -.7), n = 200)
+y_fit <- sarima(y, p = 0, d = 0, q = 1)
+y_fit$ttable
+
+```
+```{r}
+tsData_diff <- diff(log(tsData))
+#AR(1) residual analysis
+sarima(tsData_diff, p = 1, d = 0, q = 0)
+
+#MA(2)residual analysis
+sarima(tsData_diff, p = 0, d = 0, q = 2)
+
+```
+A time series exhibits ARIMA behavior if the differenced data has ARMA behavior
+```{r}
+# ARIMA(p = 1, d = 1, q = 0)
+x <- arima.sim(list(order = c(1, 1, 0), ar = .9), n = 200)
+plot(x, main = "ARIMA(p = 1, d = 1, q = 0)")
+plot(diff(x), main = "ARMA(p = 1, d = 0, q = 0)")
+```
+```{r}
+x <- arima.sim(list(order = c(1, 1, 0), ar = .9), n = 200)
+#Plot ACF (autocorrelation function) and PACF of the ARIMA model
+acf2(x)
+```
+
+```{r}
+x <- arima.sim(list(order = c(1, 1, 0), ar = .9), n = 200)
+#Use differenced data
+acf2(diff(x))
+
+```
+
+##Chapter 6.6 ARMA/ARIMA Models (Cowpertwait and Metcalfe)
+```{r}
+set.seed(1)
+x <- arima.sim(n = 10000, list(ar = -0.6, ma = 0.5)) #simulate ARMA model
+coef(arima(x, order = c(1, 0, 1))) #Find AR and MA coefficients of fitted ARMA(1, 1) model based on the simulated series x
+
+```
+```{r}
+x.ts<- ts(x)
+x.ma <- arima(x.ts, order = c(0, 0, 1)) #MA(1) model
+x.ar <- arima(x.ts, order = c(1, 0, 0)) #AR(1) model
+x.arma <- arima(x.ts, order = c(1, 0, 1)) #ARMA(1,1)
+#Compare AICs
+AIC(x.ma)
+AIC(x.ar)
+AIC(x.arma) 
+```
+## Find the best fit - choose the smallest value (28627.29)
+```{r}
+
+x.arma 
+acf(resid(x.arma)) #show correlogram of residuals for the ARMA(1, 1) model fitted
+
+```
+##Example: Australian electricity production series 
+The data exhibit a clear positive trend and a regular seasonal cycle. Furthermore, the variance increases with time, which suggests a log-transformation may be appropriate
+```{r}
+www <- "../../Data/cbe.dat" #load data 
+CBE <- read.table(www, header = T)
+Elec.ts <- ts(CBE[, 3], start = 1958, frequency = 12) #use monthly data
+Time <- 1:length(Elec.ts)
+Imth <- cycle(Elec.ts)
+Elec.lm <- lm(log(Elec.ts) ~ Time + I(Time^2) + factor(Imth)) #A regression model is fitted to the logarithms of the original series
+acf(resid(Elec.lm)) #correlogram of residuals
+
+```
+## Residuals appears to cycle with a period of 12 months suggesting that the monthly indicator variables are not sufficient to account for the seasonality in the series
+
+
+```{r}
+#Find best order with for loop with upper bounds on p and q - taken as 2
+
+best.order <- c(0, 0, 0) #initial value
+best.aic <- Inf # default to infinity
+for (i in 0:2) for (j in 0:2) 
+  {
+  fit.aic <- AIC(arima(resid(Elec.lm), order = c(i, 0,j)))
+  if (fit.aic < best.aic) 
+    {
+    best.order <- c(i, 0, j)
+    best.arma <- arima(resid(Elec.lm), order = best.order)
+    best.aic <- fit.aic
+  }
+}
+best.order #show best.order
+
+acf(resid(best.arma))
+```
+##Predict() produces forecasted values and errors. 
+```{r}
+new.time <- seq(length(Elec.ts), length = 36)
+new.data <- data.frame(Time = new.time, Imth = rep(1:12,3)) # requires data frame
+#Type lm
+predict.lm <- predict(Elec.lm, new.data) #requires new data
+#Type arma
+predict.arma <- predict(best.arma, n.ahead = 36) #requires number of time steps to forecast
+
+elec.pred <- ts(exp(predict.lm + predict.arma$pred), start = 1991,frequency = 12)
+
+ts.plot(cbind(Elec.ts, elec.pred), lty = 1:2) #combine data with predicted values
+
+```
+##Seasonal autocorrelation observed in the residuals for the fitted model.
+
+##Example: wave tank data
+```{r}
+www <- "../../Data/wave.dat" #load data 
+wave.dat <- read.table(www, header = T)
+attach (wave.dat)
+layout(1:3)
+plot (as.ts(waveht), ylab = 'Wave height')
+
+acf (waveht)
+pacf (waveht)
+```
+#The pacf suggests that p should be at least 2.
+
+```{r}
+wave.arma <- arima(waveht, order = c(4,0,4))
+acf (wave.arma$res[-(1:4)])
+pacf (wave.arma$res[-(1:4)])
+hist(wave.arma$res[-(1:4)], xlab='height / mm', main='')
+```
+### The best-fitting ARMA(p, q) model, based on a minimum variance of residuals, was obtained with both p and q equal to 4. The acf and pacf of the residuals from this model are consistent with the residuals being a realisation of white noise
