@@ -3,6 +3,8 @@ title: "TS_StohasticProcess"
 author: "Helen Yezerets"
 date: "February 2, 2019"
 output: html_document
+
+references: Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its Applications With R Examples (Fourth Edition). Springer.
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +16,6 @@ library(astsa)
 plot(jj, type="o", ylab="Quarterly Earnings per Share")
 
 ```
-
 
 ```{r}
 library(TTR)
@@ -192,5 +193,3 @@ cov(x, y,  method = c("pearson", "kendall", "spearman"))
 cor(x, y,    method = c("pearson", "kendall", "spearman"))
 
 ```
-
-#Referencecs: Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its Applications With R Examples (Fourth Edition). Springer.

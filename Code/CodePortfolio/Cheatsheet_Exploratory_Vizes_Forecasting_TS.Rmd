@@ -3,12 +3,15 @@ title: "Forecasting Using R by Rob Hyndman ( https://www.datacamp.com/courses/fo
 author: "Helen Yezerets"
 date: "April 7, 2019"
 output: html_document
+tags: WN,autoplot, Ljung-Box test, checkresiduals, Box-Cox transformation
+
+references: Hyndman, R. (2019). Forecasting Using R. Retrieved from https://www.datacamp.com/courses/forecasting-using-r
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-##References: Forecasting Using R by Rob Hyndman ( https://www.datacamp.com/courses/forecasting-using-r)
 
 #White Noise is just a time series of iid data
 ```{r}

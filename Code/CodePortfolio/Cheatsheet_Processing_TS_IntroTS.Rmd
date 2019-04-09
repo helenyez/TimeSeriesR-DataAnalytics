@@ -3,6 +3,12 @@ title: "Time Series- Exploratory Data Analysis"
 author: "Helen Yezerets"
 date: "January 16, 2019"
 output: html_document
+
+
+references:
+Matteson, D. S. (2019). Introduction to Time Series Analysis (Ch.1). Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
+
+Cowpertwait, P.S.P., & Metcalfe, A.V. (2009). Introductory Time Series with R. New York: Springer. https://doi.org/10.1007/978-0-387-88698-5 
 ---
 
 ```{r setup, include=FALSE}
@@ -436,8 +442,3 @@ New.series <- window(Choc.ts, start=c(1970, 1), end=c(1985, 12))
 New.time <- time(New.series)
 plot(New.series); abline(reg=lm(New.series ~ New.time))
 ```
-
-##References
-Matteson, D. S. (2019). *Introduction to Time Series Analysis*. Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
-
-Cowpertwait, P.S.P., & Metcalfe, A.V. (2009). *Introductory Time Series with R*. New York: Springer. https://doi.org/10.1007/978-0-387-88698-5 

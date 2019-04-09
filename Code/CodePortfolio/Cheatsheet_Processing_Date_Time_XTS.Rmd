@@ -3,14 +3,13 @@ title: "datacamp_xts2_queries"
 author: "Helen Yezerets"
 date: "February 20, 2019"
 output: html_document
+
+references: Ryan, J. (2019). Manipulating Time Series Data in R with xts and zoo. Retrieved from  https://www.datacamp.com/courses/manipulating-time-series-data-in-r-with-xts-zoo
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-##References: Manipulating Time Series Data in R with xts and zoo - https://www.datacamp.com/courses/manipulating-time-series-data-in-r-with-xts-zoo
-
 ##Querying for dates
 One of the most powerful aspects of working with time series in xts is the ability to quickly and efficiently specify dates and time ranges for subsetting.
 
@@ -73,7 +72,6 @@ head(edhec["2007-01", 1])
 head(edhec["2007-01/2007-03", 1])
 
 ```
-
 
 ```{r}
 # Replace the values in x contained in the dates vector with NA

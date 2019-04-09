@@ -3,6 +3,9 @@ title: "datacamp_TS5_Simple MA_Model"
 author: "Helen Yezerets"
 date: "February 11, 2019"
 output: html_document
+
+references: Matteson, D. S. (2019). Introduction to Time Series Analysis.(Ch.5) Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
+
 ---
 
 ```{r setup, include=FALSE}

@@ -3,6 +3,8 @@ title: "Week2 Time Series Cowpertwait Chapter 1"
 author: "Olga Scrivner"
 date: "1/20/2019"
 output: html_document
+
+references: Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R. (Ch.1) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
 ---
 
 ## Introduction: Plots, trends
@@ -94,4 +96,4 @@ plot(Elec, main = "", ylab = "Electricity production / MkWh")
 plot(as.vector(AP), as.vector(Elec), xlab = "Air passengers / 1000's", ylab = "Electricity production / MWh")
 abline(reg = lm(Elec ~ AP))
 ```
-##References: Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R. (Ch.1) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
+

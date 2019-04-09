@@ -3,7 +3,12 @@ title: "Datacamp_ch2_Predicting the future"
 author: "Helen Yezerets"
 date: "January 21, 2019"
 output: html_document
-tags: log(), diff(), white noise: ARIMA(0, 0, 0), arima(), Random Walk(RW) model is an ARIMA(0, 1, 0) model,
+tags: log(), diff(), white noise: ARIMA(0, 0, 0), arima(), Random Walk(RW) model is an ARIMA(0, 1, 0) model
+
+references: Matteson, D. S. (2019). Introduction to Time Series Analysis.(Ch.2) Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
+
+Cowpertwait, P.S.P., & Metcalfe, A.V. (2009). Introductory Time Series with R. New York: Springer. https://doi.org/10.1007/978-0-387-88698-5 
+
 ---
 
 ```{r setup, include=FALSE}
@@ -287,7 +292,4 @@ summary(Elec.stl)
 
 ```
 
-##References
-Matteson, D. S. (2019). *Introduction to Time Series Analysis*. Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
 
-Cowpertwait, P.S.P., & Metcalfe, A.V. (2009). *Introductory Time Series with R*. New York: Springer. https://doi.org/10.1007/978-0-387-88698-5 

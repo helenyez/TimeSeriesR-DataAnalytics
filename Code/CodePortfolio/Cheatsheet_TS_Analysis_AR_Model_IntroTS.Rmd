@@ -4,13 +4,14 @@ author: "Helen Yezerets"
 date: "February 7, 2019"
 output: html_document
 tags: AR (autoregressive model), acf with lags, Persistence 
+
+references: Matteson, D. S. (2019). Introduction to Time Series Analysis.(Ch.4) Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-##References
-Matteson, D. S. (2019). *Introduction to Time Series Analysis*. Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
 
 ##Simulate the autoregressive model
 The autoregressive (AR) model is arguably the **most widely used** time series model. It shares the very familiar interpretation of a simple linear regression, but here **each observation is regressed on the previous observation**. 

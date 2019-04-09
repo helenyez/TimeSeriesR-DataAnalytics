@@ -3,14 +3,20 @@ title: "ARIMA_modeling"
 author: "Helen Yezerets"
 date: "March 25, 2019"
 output: html_document
+
+references: 
+Chatterjee, S. (2018). Time Series Analysis Using ARIMA Model In R. Retrieved March 25, 2019, from https://datascienceplus.com/time-series-analysis-using-arima-model-in-r/.
+
+Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its Applications With R Examples (Fourth Edition).Ch.3. Springer.
+
+Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R.(Ch.6.6 ARMA/ARIMA Models) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Source: 
-Chatterjee, S. (2018, February 05). Time Series Analysis Using ARIMA Model In R. Retrieved March 25, 2019, from https://datascienceplus.com/time-series-analysis-using-arima-model-in-r/
+
 
 ##What is ARIMA (AutoRegressive Integrated Moving Average) modeling
 AR: lags of the differenced series
@@ -99,9 +105,6 @@ auto.arima(tsData, trace=TRUE)
 #n.ahead specifies the number of steps to predict
 predict(fitARIMA,n.ahead = 5)
 ```
-
-
-
 
 Source: Chapter 3. ARIMA Model (Shumway and Stooffer, 2016)
 ```{r}

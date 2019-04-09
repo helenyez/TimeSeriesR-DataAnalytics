@@ -3,7 +3,9 @@ title: "datacamp_TS3_Scatterplots"
 author: "Helen Yezerets"
 date: "January 30, 2019"
 output: html_document
-tags: scatterplot, covariance, correlation, autocorrelation
+tags: scatterplot, pairs, covariance, correlation, autocorrelation, acf
+
+references: Matteson, D. S. (2019). Introduction to Time Series Analysis. Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
 ---
 
 ```{r setup, include=FALSE}
@@ -215,5 +217,3 @@ acf(z)
 ```
 The estimated ACF is near zero at all lags. It appears the series x, y, or z are **not linearly related to its past**, at least through lag 35.
 
-##References
-Matteson, D. S. (2019). *Introduction to Time Series Analysis*. Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis

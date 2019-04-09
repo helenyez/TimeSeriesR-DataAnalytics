@@ -3,6 +3,8 @@ title: "Ch2_Covariance"
 author: "Helen Yezerets"
 date: "February 9, 2019"
 output: html_document
+
+references: Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R. (Ch.2) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
 ---
 
 ```{r setup, include=FALSE}
@@ -156,4 +158,3 @@ sd(Choc.decomp1$x[7:390]-Choc.decomp1$seasonal[7:390])
 ```{r}
 acf(Choc.decom$random[7:390])
 ```
-##References: Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R. (Ch.2) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
