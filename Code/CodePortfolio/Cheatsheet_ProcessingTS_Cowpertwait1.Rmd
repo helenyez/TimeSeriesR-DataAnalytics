@@ -8,13 +8,13 @@ references: Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time S
 ---
 
 ## Introduction: Plots, trends
-Sample time series data - the number of air passengers booking for the period 1949-1960.
+AirPassenger data set is a sample time series data - the number of air passengers booking for the period 1949-1960.
 ```{r AirPassenger}
 AP <- AirPassengers
 AP
 ```
 
-### TS class
+### Explore the data set
 ```{r}
 class(AP)
 start(AP)
@@ -26,7 +26,7 @@ frequency(AP)
 plot(AP, ylab = "Passengers (1000's)")
 ```
 
-##Reduce seasonal effect by aggregating data to the annual level. 
+##Reduce seasonal effect by aggregating data to the annual level using aggregate() and cycle() . 
 ```{r message=FALSE, echo=FALSE}
 layout(1:2)
 plot(aggregate(AP), ylab = "Aggregated annually")
@@ -68,7 +68,6 @@ Aug.ratio <- mean(Maine.Aug) / mean(Maine.month.ts)
 February ration is `r Feb.ratio` and August ration is `r Aug.ratio`
 
 ## Multiple Time Series
-three time series
 ```{r echo=FALSE}
 cbe <- read.table("../Data/cbe.dat", header = TRUE)
 head(cbe)
@@ -79,7 +78,7 @@ Elec.ts <- ts(cbe[, 3], start = 1958, frequency = 12)
 Beer.ts <- ts(cbe[, 2], start = 1958, frequency = 12)
 Choc.ts <- ts(cbe[, 1], start = 1958, frequency = 12)
 ```
-##Plot all three:
+##Plot all three using cbind():
 ```{r echo=FALSE}
 plot(cbind(Elec.ts, Beer.ts, Choc.ts))
 ```

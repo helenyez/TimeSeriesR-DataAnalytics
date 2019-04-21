@@ -63,7 +63,7 @@ apply(eu_percentreturns, MARGIN = 2, FUN = sd)
 par(mfrow = c(2,2))
 apply(eu_percentreturns, MARGIN = 2, FUN = hist, main = "Percent returns ", xlab = "Percentage Return")
 
-# Display normal quantile plots of percent returns for each index
+# Display normal quantile plots (qqnorm) of percent returns for each index
 par(mfrow = c(2,2))
 apply(eu_percentreturns, MARGIN = 2, FUN = qqnorm, main = "Normal Quantile for each index", xlab = "Percentage Return")
 
@@ -74,7 +74,7 @@ qqline(eu_percentreturns)
 ##Plotting pairs of data
 eu_stocks contains daily closing prices from 1991-1998 for the major stock indices in Germany (DAX), Switzerland (SMI), France (CAC), and the UK (FTSE).
 
-to examine the bivariate relationship between pairs of time series. The *plot(a, b)* function will produce a scatterplot when two time series names a and b are given as input.
+to examine the bivariate relationship between pairs of time series use *plot(a, b)* function that produces a scatterplot when two time series names a and b are given as input.
 
 To simultaneously make scatterplots for all pairs of several assets the `pairs()` function can be applied to produce a *scatterplot matrix*. When shared time trends are present in prices or index values it is common to instead compare their returns or log returns.
 
@@ -171,12 +171,6 @@ The `acf(..., lag.max = ..., plot = FALSE)` function will estimate all autocorre
 ```{r}
 # Generate ACF estimates for x up to lag-10
 acf(x, lag.max = 10, plot = FALSE)
-
-# Type the ACF estimate at lag-10 
-0.009
-
-# Type the ACF estimate at lag-5
--0.032
 
 ```
  Since autocorrelations may vary by lag, we often consider **autocorrelations as a function of the time lag**. Taking this view, we have now estimated the autocorrelation function (ACF) of x from lags 0 to 10.

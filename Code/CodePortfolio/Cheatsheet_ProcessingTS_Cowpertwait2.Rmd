@@ -15,14 +15,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 data(AirPassengers)
 AP <- AirPassengers
-AP.decom <- decompose(AP, "multiplicative")
+AP.decom <- decompose(AP, "multiplicative") #makes seasonal adjustments using moving average, depicts original ts, trend, seasonal, and random (remainder) part
 plot(ts(AP.decom$random[7:138]))
-acf(AP.decom$random[7:138])
+acf(AP.decom$random[7:138]) #plots autocovariance or autocorrelation
 
 
 ```
 
-###Cosine shape is a characteristic of autoregressive model of order 2 or  a failed seasonal adjustment by **decom** function. We need to check the st dev
+###Cosine shape is a characteristic of autoregressive model of order 2 or  a failed seasonal adjustment by **decompose()** function. We need to check the st dev
 
 ```{r}
 sd(AP[7:138])
@@ -56,9 +56,9 @@ cor(x,y)
 ```{r ignore=TRUE}
 
 mean(x) # returns the mean (average)
-var(x) #returns the variance with denominator n ??? 1
+var(x) #returns the variance
 sd(x) #returns the standard deviation
-cov(x,y) #returns the covariance with denominator n ??? 1
+cov(x,y) #returns the covariance 
 cor(x,y) #returns the correlation
 acf(y, lag.max=10,plot=FALSE) #returns the correlogram (or sets the argument to obtain autocovariance function)
 
@@ -89,9 +89,9 @@ smooths the time series without assuming any particular form for the trend.
 ```{r ignore=TRUE}
 
 mean(x) # returns the mean (average)
-var(x) #returns the variance with denominator n ??? 1
+var(x) #returns the variance 
 sd(x) #returns the standard deviation
-cov(x,y) #returns the covariance with denominator n ??? 1
+cov(x,y) #returns the covariance
 cor(x,y) #returns the correlation
 acf(y, lag.max=10,plot=FALSE) #returns the correlogram (or sets the argument to obtain autocovariance function)
 

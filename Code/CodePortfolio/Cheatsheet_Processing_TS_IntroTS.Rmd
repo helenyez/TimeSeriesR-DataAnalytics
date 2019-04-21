@@ -31,8 +31,7 @@ head(Nile, n=10)
 tail(Nile, n=12)
 ```
 ## Basic time series plots
-`plot()` function:
-to have an informative title, which can be set using the argument **main**. 
+`plot()` function: to have an informative title, which can be set using the argument **main**. 
 Example:main= "Annual River Nile Volume at Aswan, 1871-1970".
 
 Finally, the default plotting type for time series objects is **l** for line. Connecting consecutive observations can help make a time series plot more interpretable. Sometimes it is also useful to include both the observations points as well as the lines, and we instead use **b** for both.
@@ -41,7 +40,7 @@ Finally, the default plotting type for time series objects is **l** for line. Co
 # Plot the Nile data
 plot(Nile)
 
-# Plot the Nile data with xlab, ylab, main, and type arguments
+# Plot the Nile data with xlab (x label), ylab(y label), main, and type arguments
 plot(Nile, xlab = "Year", ylab = "River Volume (1e9 m^{3})", 
 main = "Annual River Nile Volume at Aswan, 1871-1970", type ="b")
 ```
@@ -141,22 +140,17 @@ Calling `plot()` on a ts object will automatically generate a plot over time.
 ```{r}
 # Use print() and plot() to view data_vector
 data_vector<-c(10,6,11,8,10,3,6.9)
-
 print(data_vector)
-
-```
-```{r}
 plot(data_vector)
 ```
-```{r}
 
+
+```{r}
 # Convert data_vector to a ts object with start = 2004 and frequency = 4
 time_series <- ts(data_vector, start=2004, frequency = 4)
 
 # Use print() and plot() to view time_series
 print(time_series)
-```
-```{r}
 plot(time_series)
 
 ```
@@ -262,7 +256,7 @@ class(Maine.month)
 ```
 
 ```{r}
-#now the unemploy field can be accessed directly
+#now the unemploy column can be accessed directly
 Maine.month.ts <- ts(unemploy, start = c(1996, 1), frequency = 12)
 ```
 To select a smaller number of data we can specify an earlier end date using the parameter `end`. 
@@ -271,10 +265,8 @@ To analyse trends in the unemployment rate we can divide by 12 to give a mean an
 ```{r}
 Maine.annual.ts <- aggregate(Maine.month.ts)/12
 ```
-We now plot both time series. There is clear monthly variation. From
-Figure 1.3(a) it seems that the February figure is typically about 20% more
-than the annual average, whereas the August figure tends to be roughly 20%
-less.
+Plot both time series. There is clear monthly variation. It seems that the February figure is typically about 20% more
+than the annual average, whereas the August figure tends to be roughly 20% less.
 
 ```{r}
 layout(1:2)
@@ -282,7 +274,7 @@ plot(Maine.month.ts, ylab = "unemployed (%)")
 plot(Maine.annual.ts, ylab = "unemployed (%)")
 ```
 
-We can calculate the precise percentages in R, using **window**. This function will **extract that part of the time series between specified start and end points**
+Calculate the precise percentages using **window()**. This function will **extract that part of the time series between specified start and end points**
 ```{r}
 
 Maine.Feb <- window(Maine.month.ts, start = c(1996,2), freq = TRUE)
@@ -290,18 +282,22 @@ Maine.Feb
 ```
 
 ```{r}
+#Calculate ratio 
 Feb.ratio <- mean(Maine.Feb) / mean(Maine.month.ts)
 Feb.ratio
 ```
 
 ```{r}
+#Plot the data for February
 layout(1:1)
 plot(Maine.Feb)
 ```
 
+
+###Matrix manipulations
 ```{r}
 x <- c(1,2,3)
-#Create a matrix col=3
+#Create a matrix col=3 using ncol=3
 y <- matrix(c(3,1,2,2,1,3), ncol = 3, byrow = TRUE)
 y
 ```
@@ -311,6 +307,7 @@ y
 #Transpose the y matrix
 t(y)
 ```
+
 ```{r}
 #Multiplication: x[1,3]*y[3,2]=z[1,2]
 x%*%t(y)
@@ -345,7 +342,7 @@ class(CBE)
 create time series objects for the electricity, beer, and chocolate data.
 If you omit end, R uses the full length of the vector, and if you omit the month
 in start, R assumes 1. You can use plot with cbind to plot several series on
-one figure (Fig. 1.5).
+one figure
 
 ```{r}
 Elec.ts <- ts(CBE[, 3], start = 1958, frequency =  12)
@@ -381,17 +378,16 @@ plot(Elec, main = "", ylab = "Electricity production / MkWh")
 ```{r}
 
 #as.vector() is needed to convert ts to ordinary vector required for a plot()
-
 plot(as.vector(AP), as.vector(Elec),xlab = "Air passengers / 1000's",ylab = "Electricity production / MWh")
 abline(reg = lm(Elec ~ AP))
 ```
-##High correlation
+##Check correlation
 
 ```{r}
 cor(AP, Elec)
 
 ```
-In the plot function above, as.vector is needed to convert the ts objects to
+In the plot function above, `as.vector` is needed to convert the ts objects to
 ordinary vectors suitable for a scatter plot.
 
 ```{r}
@@ -433,12 +429,13 @@ the monthly means over the period 1961-1990, plays a central role
 Choc.annual <- aggregate(Choc.ts, FUN = mean)
 plot(Choc.ts)
 plot(Choc.annual)
-
 ```
-using the `time()` function and the associated observed temperature series extracted using `window()`. The data are plotted and a line superimposed using a regression of temperature on the new time index 
 
 ```{r}
+#using the `time()` function and the associated observed temperature series extracted using `window()`
 New.series <- window(Choc.ts, start=c(1970, 1), end=c(1985, 12))
 New.time <- time(New.series)
+
+#The data are plotted and a line superimposed using a regression of temperature on the new time index 
 plot(New.series); abline(reg=lm(New.series ~ New.time))
 ```

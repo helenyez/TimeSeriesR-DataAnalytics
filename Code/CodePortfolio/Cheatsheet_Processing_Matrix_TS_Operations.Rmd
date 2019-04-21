@@ -10,7 +10,6 @@ references: Scrivner, O. (2019) Time Series Analysis: 31863. Spring 2019 Indiana
 
 ## Create Matrix using cbind, rbind, nrow, ncol, byrow=TRUE/FALSE
 ##dim() checks dimentions of the matrix
-Name columns and rows
 
 ```{r }
 # 3 x 2

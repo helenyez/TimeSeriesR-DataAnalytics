@@ -11,7 +11,8 @@ references: Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
-install.packages("astsa")
+#Need astsa package
+#install.packages("astsa")
 library(astsa) 
 plot(jj, type="o", ylab="Quarterly Earnings per Share")
 
@@ -37,13 +38,10 @@ crazy(200) #call function crazy
 
 ```
 ##R.4 Time Series Primer
-```{r}
-#install.packages("astsa")
-#library(astsa)
-```
 
-To create a time series object, use the command **ts**. Related commands are **as.ts** to coerce an object to a time series and **is.ts** to test whether an object is a time series. First, make a small data set:
+To create a time series object, use the command **ts**. Related commands are **as.ts** to coerce an object to a time series and **is.ts** to test whether an object is a time series. 
 ```{r}
+#Create a small data set:
 (mydata = c(1,2,3,2,1) ) # make it and view it
 ```
 ```{r}
@@ -60,8 +58,9 @@ Now make it a quarterly time series that starts in 1950-III:
 ```{r}
 (mydata = ts(mydata, start=c(1950,3), frequency=4) )
 ```
+View the sampled times
 ```{r}
-time(mydata) # view the sampled times
+time(mydata)
 ```
 
 To use part of a time series object, use window():
@@ -86,8 +85,7 @@ Compare cbind and ts.intersect:
 ts.intersect(x, lag(x,1), lag(x,-1))
 ```
 
-To difference a series, rxt = xt ???? xt????1, use
-diff(x) but note that diff(x, 2)
+To difference a series,  use diff(x) but note that diff(x, 2)
 is not second order differencing,  do one of these:
 
 ```{r}
@@ -117,30 +115,26 @@ fitted(fit) # will display the fitted values
 lm(y ~ 0 + x) # will exclude the intercept 
 ```
 You have to be careful if you use lm() for lagged values of a time series. If you use lm(), then what you have to do is align the series using ts.intersect.
-Please read the warning Using time series in the lm() help file [help(lm)]. Here
-is an example regressing astsa data, weekly cardiovascular mortality (cmort) on
+Use Case: regressing astsa data, weekly cardiovascular mortality (cmort) on
 we create ded, which consists of the intersection of the three series:
 ```{r}
-ded = ts.intersect(cmort, part, part4=lag(part,-4))
+ded = ts.intersect(cmort, part, part4=lag(part,-4)) # renaming lag(part,-4) to part4 - optional step
 ```
 Now the series are all aligned and the regression will work.
 ```{r}
 summary(fit <- lm(cmort~part+part4, data=ded, na.action=NULL) )
 ```
 
-There was no need to rename lag(part,-4) to part4, it's just an example of what
-you can do.
-An alternative to the above is the package **dynlm**, which has to be installed. After
-the package is installed, the previous example may be run as follows:
+An alternative to the above is the package **dynlm**, which has to be installed.
 ```{r}
 #install.packages("dynlm")
 library(dynlm) # load the package
 fit = dynlm(cmort~part + L(part,4)) # no new data file needed
 summary(fit)
 ```
-The output is identical to the lm output. To fit another model, for example, add the
-temperature series tempr, the advantage of dynlm is that a new data file does not have
-to be created. We could just run
+The output is identical to the lm output. 
+To fit another model, for example, add the temperature series tempr, the advantage of dynlm is that a new data file does not have
+to be created. 
 ```{r}
 summary(dynlm(cmort~ tempr + part + L(part,4)) )
 ```
@@ -161,9 +155,9 @@ x = arima.sim(list(order=c(1,0,0), ar=.9), n=100) + 50 # AR(1) w/mean 50
 x = arima.sim(list(order=c(2,0,0), ar=c(1,-.9)), n=100) # AR(2)
 x = arima.sim(list(order=c(1,1,1), ar=.9 ,ma=-.5), n=200) # ARIMA(1,1,1)
 ```
-Some oscillations are taken out. A linear combination of values in a time series such as in (1.1) is referred to,generically, as a **filtered series**; hence the command filter in the following code
+Some oscillations are taken out. A linear combination of values in a time series such as in (1.1) is referred to, generically, as a **filtered series**; hence the command filter in the following code
 ```{r}
-w = rnorm(500,0,1) # 500 N(0,1) variates
+w = rnorm(500,0,1) # 500 N(0,1) variates of WN
 v = filter(w, sides=2, filter=rep(1/3,3)) # moving average
 par(mfrow=c(2,1))
 plot.ts(w, main="white noise")
@@ -171,12 +165,14 @@ plot.ts(v, ylim=c(-3,3), main="moving average")
 ```
 
 ```{r}
-set.seed(154) # so you can reproduce the results
+set.seed(154) # use to reproduce the results
 w = rnorm(200); x = cumsum(w) # two commands in one line
 wd = w +.2; xd = cumsum(wd)
 plot.ts(xd, ylim=c(-5,55), main="random walk", ylab='')
 lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
 ```
+
+Use faithful  to calcuate covariance between eraptions and waiting time
 ```{r faithful}
 data(faithful)
 (FT<-faithful)
@@ -185,11 +181,13 @@ y<-FT$waiting
 cov(x,y)
 ```
 
+
 ```{r}
+#Calculate 3 covariance types
 cov(x, y,  method = c("pearson", "kendall", "spearman"))
 ```
 
 ```{r}
+#Calculate 3 correlation types
 cor(x, y,    method = c("pearson", "kendall", "spearman"))
-
 ```

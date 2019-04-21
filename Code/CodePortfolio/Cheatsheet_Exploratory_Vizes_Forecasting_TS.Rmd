@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #White Noise is just a time series of iid data
 ```{r}
-set.seed(3) # Reproducibility
+set.seed(3) # for reproducibility
 wn <- ts(rnorm(36)) # Create White noise
-autoplot(wn) # Plot!
+autoplot(wn) # Plot data
 ```
 ## WN assumptions:
 ### 95% of values ~= 0  and lay inside the blue lines
@@ -66,7 +66,7 @@ The 95% forecast intervals should contain 95% of the future observations
 
 ##Fitted values and residuals
 ```{r}
-#Requires fpp2 package for naive()
+#Requires fpp2 package for naive() function
 library(fpp2)
 ```
 

@@ -19,7 +19,7 @@ A["20090825"]       ## Aug 25, 2009
 A["201203/201212"]  ## Mar to Dec 2012
 A["/201601"]        ## Up to and including January 2016
 
-Extract a range of dates using the ISO-8601 feature of xts. The create subset of your new object with specific start and end dates using the same notation.
+Extract a range of dates using the ISO-8601 feature of xts. The create subset of the new object with specific start and end dates using the same notation.
 
 ```{r}
 # Select all of 2016 from x
@@ -35,7 +35,7 @@ length(jan_march)
 
 
 ##Extracting recurring intraday intervals
-To view only a subset of time for each day over multiple days using xts, you can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
+To view only a subset of time for each day over multiple days using xts, we can slice days easily by using special notation in the i = argument to the single bracket extraction (i.e. [i, j]).
 
 Use the special T/T notation designed for intraday repeating intervals.
 
@@ -43,7 +43,7 @@ Use the special T/T notation designed for intraday repeating intervals.
 NYSE["T09:30/T16:00"] 
 
 ```{r}
-# Extract extract recurring morning hours between 8AM and 10AM from irreg ts
+# Extract recurring morning hours between 8AM and 10AM from irreg ts
 morn_2010 <- irreg["T08:00/T10:00"]
 
 # Extract the observations in morn_2010 for January 13th, 2010
@@ -71,9 +71,6 @@ data(edhec, package = "PerformanceAnalytics")
 head(edhec["2007-01", 1])
 head(edhec["2007-01/2007-03", 1])
 
-```
-
-```{r}
 # Replace the values in x contained in the dates vector with NA
 x[dates] <-NA
 x["2016-06-11"]
@@ -89,11 +86,11 @@ x["2016-06-11"]
 ```
 
 ##Find the first or last period of time
-Sometimes you need to locate data by relative time, you describe a relative position in time. A simple example would be something like the last 3 weeks of a series, or the first day of current month.
+To locate data by relative time, you describe a relative position in time. A simple example would be something like the last 3 weeks of a series, or the first day of current month.
 
-Without a time aware object, this gets quite complicated very quickly. Luckily, xts has the necessary prerequisites built in for you to use with very little learning required. Using the first() and last() functions it is actually quite easy!
+xts has the necessary prerequisites built in: first() and last() functions 
 
-For this exercise, you'll extract relative observations from a data set called temps, a time series of summer temperature data from Chicago, IL, USA.
+Use case: Extract relative observations from a data set called temps, a time series of summer temperature data from Chicago, IL, USA.
 
 ```{r}
 # Create lastweek using the last 1 week of temps
@@ -119,7 +116,7 @@ last(first(Temps, '1 week'), '3 days')
 first(last(first(temps, "2 weeks"), "1 week"), "3 days")
 ```
 ##Matrix arithmetic - add, subtract, multiply, and divide in time!
-xts objects respect time. By design when you perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes.
+xts objects respect time. By design when we perform any binary operation using two xts objects, these objects are first aligned using the intersection of the indexes.
 
 The reason for this is that you want to preserve the point-in-time aspect of your data, assuring that you don't introduce accidental look ahead (or look behind!) bias into your calculations. You want to preserve the dimensions of your data.
 
@@ -138,9 +135,9 @@ a+as.numeric(b)
 ##Math with non-overlapping indexes
 xts respects time and will only return the intersection of times when doing various mathematical operations.
 
-re-indexing your data before an operation makes it possible to preserve the dimensions of your data by leveraging the same mechanism that xts uses internally in its own Ops method (the code dispatched when you call + or similar).
+re-indexing the data before an operation makes it possible to preserve the dimensions of the data by leveraging the same mechanism that xts uses internally in its own Ops method (the code dispatched when you call + or similar).
 
-The third way involves modifying the two series you want by assuring you have some union of dates - the dates you require in your final output. Use `merge(b, index(a))`
+The third way involves modifying the two series we want by assuring you have some union of dates - the dates you require in your final output. Use `merge(b, index(a))`
 
 ```{r}
 # Add a to b, and fill all missing rows of b with 0

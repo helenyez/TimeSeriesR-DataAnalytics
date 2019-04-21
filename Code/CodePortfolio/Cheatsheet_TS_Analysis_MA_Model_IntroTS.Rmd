@@ -3,6 +3,7 @@ title: "datacamp_TS5_Simple MA_Model"
 author: "Helen Yezerets"
 date: "February 11, 2019"
 output: html_document
+tags: MA model, ACF
 
 references: Matteson, D. S. (2019). Introduction to Time Series Analysis.(Ch.5) Retrieved from https://www.datacamp.com/courses/introduction-to-time-series-analysis
 
@@ -62,13 +63,13 @@ Now that you've simulated some MA models and calculated the ACF from these model
 MA<-arima(x, order = c(0,0,1))
 print(MA)
 
-# Paste the slope (ma1) estimate below
+# slope (ma1) estimate 
 0.7928
 
-# Paste the slope mean (intercept) estimate below
+# slope mean (intercept) estimate 
 0.1589
 
-# Paste the innovation variance (sigma^2) estimate below
+# innovation variance (sigma^2) estimate 
 0.9576
 
 # Fit the MA model to Nile
@@ -81,12 +82,12 @@ MA_fit <- Nile - resid(MA)
 points(MA_fit, type = "l", col = 2, lty = 2)
 ```
 ###Analysis:
-By fitting an MA model to your Nile data, you're able to capture variation in the data for future prediction. Based on the plot you've generated, does the MA model appear to be a strong fit for the Nile data?
+By fitting an MA model to Nile data, we're able to capture variation in the data for future prediction.
 
 ##Simple forecasts from an estimated MA model
 Now that you've estimated a MA model with your Nile data, the next step is to do some simple forecasting with your model. As with other types of models, you can use the **predict()** function to make simple forecasts from your estimated MA model. Recall that the **$pred value is the forecast**, while the **$se value is a standard error for that forecast**, each of which is based on the fitted MA model.
 
-Once again, to make predictions for several periods beyond the last observation you can use the **n.ahead = h** argument in your call to predict(). The forecasts are made recursively from 1 to h-steps ahead from the end of the observed time series. However, note that except for the 1-step forecast, all forecasts from the MA model are equal to the estimated mean (intercept).
+Once again, to make predictions for several periods beyond the last observation we can use the **n.ahead = h** argument in your call to predict(). The forecasts are made recursively from 1 to h-steps ahead from the end of the observed time series. However, note that except for the 1-step forecast, all forecasts from the MA model are equal to the estimated mean (intercept).
 
 ```{r}
 # Make a 1-step forecast based on MA
@@ -108,9 +109,9 @@ points(MA_forecasts + 2*MA_forecast_se, type = "l", col = 2, lty = 2)
 ```
 
 ##AR vs MA models
-As you've seen, autoregressive (AR) and simple moving average (MA) are two useful approaches to modeling time series. But how can you determine whether an AR or MA model is more appropriate in practice?
+autoregressive (AR) and simple moving average (MA) are two useful approaches to modeling time series.
 
-To determine model fit, you can measure the Akaike information criterion (AIC) and Bayesian information criterion (BIC) for each model. While the math underlying the AIC and BIC is beyond the scope of this course, for your purposes the main idea is these these indicators penalize models with more estimated parameters, to avoid overfitting, and smaller values are preferred. All factors being equal, a model that produces a lower AIC or BIC than another model is considered a better fit.
+To determine model fit, we can measure the Akaike information criterion (AIC) and Bayesian information criterion (BIC) for each model. While the math underlying the AIC and BIC is beyond the scope of this course, for your purposes the main idea is these these indicators penalize models with more estimated parameters, to avoid overfitting, and smaller values are preferred. All factors being equal, a *model that produces a lower AIC or BIC than another model is considered a better fit.*
 
 To estimate these indicators, you can use the AIC() and BIC() commands, both of which require a single argument to specify the model in question.
 
@@ -131,6 +132,7 @@ BIC(AR)
 BIC(MA)
 ```
 
+##Analysis
 Although the predictions from both models are very similar (indeed, they have a correlation coeffiicent of 0.94), both the AIC and BIC indicate that the AR model is a slightly better fit for your Nile data.
 
 
