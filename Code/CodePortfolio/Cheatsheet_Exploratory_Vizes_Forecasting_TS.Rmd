@@ -203,7 +203,7 @@ ggtitle("Inverse electricity generation")
 BoxCox.lambda(usmelec)
 ```
 
-##Use as lambda for back-trasfomations
+##Use as lambda for back-trasformations
 ```{r}
 #Back transformation
 usmelec %>%

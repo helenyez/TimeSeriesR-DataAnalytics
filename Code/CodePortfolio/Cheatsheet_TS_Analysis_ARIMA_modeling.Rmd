@@ -29,7 +29,7 @@ MA: lags of errors
 
 ```{r}
 library(astsa)             #load astsa package
-data()                     #view all the loaded data 
+#data()                     #view all the loaded data 
 ```
 
 ```{r chicken}

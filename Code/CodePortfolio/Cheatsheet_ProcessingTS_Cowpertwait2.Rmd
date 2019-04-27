@@ -14,6 +14,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 data(AirPassengers)
+AirPassengers
+```
+```{r}
 AP <- AirPassengers
 AP.decom <- decompose(AP, "multiplicative") #makes seasonal adjustments using moving average, depicts original ts, trend, seasonal, and random (remainder) part
 plot(ts(AP.decom$random[7:138]))
@@ -84,18 +87,6 @@ cor(x,y)
 The main difference between the regression approach and using
 decompose is that the former assumes a linear trend, whereas the latter
 smooths the time series without assuming any particular form for the trend.
-
-###2.5 Summary of commands used in examples
-```{r ignore=TRUE}
-
-mean(x) # returns the mean (average)
-var(x) #returns the variance 
-sd(x) #returns the standard deviation
-cov(x,y) #returns the covariance
-cor(x,y) #returns the correlation
-acf(y, lag.max=10,plot=FALSE) #returns the correlogram (or sets the argument to obtain autocovariance function)
-
-```
 
 ```{r}
 Varnish<- read.table("../Data/varnish.dat", header = TRUE)

@@ -1,0 +1,641 @@
+---
+title: "Analysis of fMRI Data Set (astsa package)"
+subtitle: "IU M.S. Data Science, Time Series Final Project"
+author: "Helen Yezerets"
+date: "April 24, 2019"
+output: html_document
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###References: 
+1. Chatterjee, S. (2018). Time Series Analysis Using ARIMA Model In R. Retrieved March 25, 2019, from https://datascienceplus.com/time-series-analysis-using-arima-model-in-r/.
+
+2. Coghlan, A. (2010). Using R for Time Series Analysis. Retrieved April 24, 2019, from https://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/src/timeseries.html#time-series-analysis
+
+3. Correlation matrix : A quick start guide to analyze, format and visualize a correlation matrix using R software. (n.d.). Retrieved April 25, 2019, from http://www.sthda.com/english/wiki/correlation-matrix-a-quick-start-guide-to-analyze-format-and-visualize-a-correlation-matrix-using-r-software#compute-correlation-matrix-in-r
+
+4. Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R.(Ch.6.6 ARMA/ARIMA Models) New York: Springer. https://doi.org/10.1007/978-0-387-88698-5. 
+
+5. Shumway, R., & Stooffer, D. S. (2016). Time Series Analysis and Its Applications With R Examples (Fourth Edition).Ch.3. Springer.from http://www.stat.pitt.edu/stoffer/tsa4/
+
+#Data Description
+
+##Description 
+
+fMRI data consists of location and stimulus timing related to percieved pain. Stimulus was applied for 32 seconds with 32 seconds waiting period. The sampling rate was one measurement of BOLD (blood oxigenation-level dependent) intensity every 2 seconds for 256 seconds (n = 128). The number of subjects under each condition varies.
+
+##Details
+
+The signal was measured in 9 brain Locations (L):
+*[1] Cortex 1: Primary Somatosensory, Contralateral (pSS(C)), 
+*[2] Cortex 2: Primary Somatosensory, Ipsilateral (pSS(I)), 
+*[3] Cortex 3: Secondary Somatosensory, Contralateral (sSS(C)), 
+*[4] Cortex 4: Secondary Somatosensory, Ipsilateral (sSS(I)), 
+*[5] Caudate (Cau), 
+*[6] Thalamus 1: Contralateral (Tha(C)), 
+*[7] Thalamus 2: Ipsilateral (Tha(I)), 
+*[8] Cerebellum 1: Contralateral(Crb(C))  
+*[9] Cerebellum 2: Ipsilateral (Crb(I)).
+
+The stimuli (T) with the number of respective sujects:
+*[1] Awake-Brush (5 subjects), 
+*[2] Awake-Heat (4 subjects), 
+*[3] Awake-Shock (5 subjects), 
+*[4] Low-Brush (3 subjects), 
+*[5] Low-Heat (5 subjects), and 
+*[6] Low-Shock (4 subjects). 
+
+Example: fmri$L1T6 (as well as fmri[[6]]) (Location 1, Treatment 6) will show the data for Cortex 1: Primary Somatosensory, Contralateral location with Low-Shock (4 subjects) treatment
+```{r}
+#Need astsa package
+#install.packages("astsa")
+library(astsa) 
+```
+
+##variable description and its statistical summary: mean, sd, min, max
+
+```{r fmri}
+#Explore fmri data
+str(fmri)
+```
+###Let's explore one of the Location-Stimulus pair: L1 (pSSC) for T2 (Awake Heat)
+```{r}
+#Check the type of L1T2
+class(fmri$L1T2)
+
+#show first 6 lines 
+head(fmri$L1T2)
+
+#show last 6 lines 
+tail(fmri$L1T2)
+```
+
+```{r}
+#check if the data is time series
+is.ts(fmri$L1T2)
+```
+
+```{r}
+#Convert to ts
+fmri_AH1.ts<-ts(fmri$L1T2, frequency = 64)
+class(fmri_AH1.ts)
+```
+
+```{r}
+#view the times
+time(fmri_AH1.ts)
+```
+```{r}
+#Column summary for individual subjects
+summary(fmri_AH1.ts)
+
+```
+## ts description: start, end, frequency
+```{r}
+start(fmri_AH1.ts)
+end(fmri_AH1.ts)
+frequency(fmri_AH1.ts)
+cycle(fmri_AH1.ts)
+```
+#Data  Exploration
+
+##plotting multiple locations for the same stimulus data 
+###Awake-Heat
+
+```{r}
+
+par(mfrow=c(3,2))
+#Explore T2 on all of the cortex zones
+ts.plot(as.ts(fmri$L1T2), col=3:7, main="Cortex 1: Primary Somatosensory, Contralateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L2T2), col=3:7, main="Cortex 2: Primary Somatosensory, Ipsilateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L3T2),col=3:7, main="Cortex 3: Secondary Somatosensory, Contralateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L4T2),col=3:7, main="Cortex 4: Secondary Somatosensory, Ipsilateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+
+ts.plot(as.ts(fmri$L8T2),col=3:7, main="Cerebellum 1: Contralateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L9T2),col=3:7, main="Cerebellum 2: Ipsilateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+```
+
+Observations: 
+In response to Awake-Heat stimulation 
+* Both Contralateral Cortex zone show potential strong correlation and cyclic increase in BOLD response in 16, 45, 77 and 110 sec that resembles a gradual addaptation to the stimulus. 
+* On the other hand, the Primary Ipsilateral zone reacts with a steady increase, with a max at the 32 sec of the stimulus during the first application, however the second stimulus produces two picks: 32 sec and 64. 
+* The secondary Ipsilateral zone follows the Contralateral zone pattern with higher variability of the BOLD response signal
+* Cerebellum exibits response to the stimulus similar to the Cortex Secondary zone with slightly less pronounced cyclic variations
+```{r}
+#Explore the basal brain zone
+par(mfrow=c(3,1))
+ts.plot(as.ts(fmri$L6T2),col=3:7, main="Thalamus 1: Contralateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L7T2),col=3:7, main="Thalamus 2: Ipsilateral", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+ts.plot(as.ts(fmri$L5T2),col=3:7, main="Caudate", ylab="BOLD", xlab="Time (1 pt = 2sec)")
+
+```
+The basal structures appear to respond as a WN. Need further investigation
+
+
+## Data transformation: 
+Current data is per test subject that makes it harder for analysis. Aggregation by mean would clarify the trends of the data. Log transformation is not appropriate since the range and variancies of BOLD values are relatively small and do not exhibit rapid growth pattern over time.
+```{r}
+#Check row means
+rowMeans(fmri_AH1.ts)
+```
+
+
+```{r}
+#combine brain zones per stimulus using row means
+
+#[1] Awake-Brush (5 subjects)
+fmri_ABrush<-cbind(rowMeans(fmri$L1T1), rowMeans(fmri$L2T1), rowMeans(fmri$L3T1), rowMeans(fmri$L4T1), rowMeans(fmri$L5T1),  rowMeans(fmri$L6T1), rowMeans(fmri$L7T1), rowMeans(fmri$L8T1), rowMeans(fmri$L9T1))
+
+#[2] Awake-Heat (4 subjects)
+fmri_AHeat<-cbind(rowMeans(fmri$L1T2), rowMeans(fmri$L2T2), rowMeans(fmri$L3T2), rowMeans(fmri$L4T2), rowMeans(fmri$L5T2),  rowMeans(fmri$L6T2), rowMeans(fmri$L7T2), rowMeans(fmri$L8T2), rowMeans(fmri$L9T2))
+#add column names
+colnames(fmri_AHeat) <-c("pSS(C)", "pSS(I)","sSS(C)", "sSS(I)", "Cau", "Tha(C)","Tha(I)", "Crb(C)", "Crb(I)")
+
+
+#[3] Awake-Shock (5 subjects), 
+fmri_AShock<-cbind(rowMeans(fmri$L1T3), rowMeans(fmri$L2T3), rowMeans(fmri$L3T3), rowMeans(fmri$L4T3), rowMeans(fmri$L5T3),  rowMeans(fmri$L6T3), rowMeans(fmri$L7T3), rowMeans(fmri$L8T3), rowMeans(fmri$L9T3))
+#add column names for Sedated Heat
+colnames(fmri_AShock) <-c("pSS(C)", "pSS(I)","sSS(C)", "sSS(I)", "Cau", "Tha(C)","Tha(I)", "Crb(C)", "Crb(I)")
+
+#[4] Low-Brush (3 subjects),
+fmri_SBrush<-cbind(rowMeans(fmri$L1T4), rowMeans(fmri$L2T4), rowMeans(fmri$L3T4), rowMeans(fmri$L4T4), rowMeans(fmri$L5T4),  rowMeans(fmri$L6T4), rowMeans(fmri$L7T4), rowMeans(fmri$L8T4), rowMeans(fmri$L9T4))
+
+#[5] Low-Heat (5 subjects),  
+fmri_SHeat<-cbind(rowMeans(fmri$L1T5), rowMeans(fmri$L2T5), rowMeans(fmri$L3T5), rowMeans(fmri$L4T5), rowMeans(fmri$L5T5),  rowMeans(fmri$L6T5), rowMeans(fmri$L7T5), rowMeans(fmri$L8T5), rowMeans(fmri$L9T5))
+#add column names for Sedated Heat
+colnames(fmri_SHeat) <-c("pSS(C)", "pSS(I)","sSS(C)", "sSS(I)", "Cau", "Tha(C)","Tha(I)", "Crb(C)", "Crb(I)")
+
+
+#[6] Low-Shock (4 subjects). 
+fmri_SShock<-cbind(rowMeans(fmri$L1T6), rowMeans(fmri$L2T6), rowMeans(fmri$L3T6), rowMeans(fmri$L4T6), rowMeans(fmri$L5T6),  rowMeans(fmri$L6T6), rowMeans(fmri$L7T6), rowMeans(fmri$L8T6), rowMeans(fmri$L9T6))
+#add column names for Sedated Heat
+colnames(fmri_SShock) <-c("pSS(C)", "pSS(I)","sSS(C)", "sSS(I)", "Cau", "Tha(C)","Tha(I)", "Crb(C)", "Crb(I)")
+
+```
+##Depict  response to Heat by various brain zones
+### Awake
+```{r}
+summary(fmri_AHeat)
+class(fmri_AHeat)
+```
+
+```{r}
+
+plot.ts(fmri_AHeat,col=4,xlab="Time (1 pt = 2sec)", main="Awake Heat")
+
+#Show subtitle on a side of the plot (1=bottom, 2=left, 3=top, 4=right)
+mtext("Cortex & Caudate", side=3, adj=.05, line=-0.8) 
+mtext("Thalamus & Cerebellum", side=3, adj=.95, line=-0.8)
+
+```
+
+#Regression with summaries
+
+```{r}
+#Fit data
+fmri_AHeat.ts<-as.ts(fmri_AHeat, frequency = 64)
+```
+
+```{r}
+#Fit the regression model and provide summary
+
+summary(fit3 <- lm(fmri_AHeat.ts~time(fmri_AHeat.ts), na.action=NULL))
+```
+Observations: significant predictive time based value could be attributed to pSSC, pSSI and sSSI 
+
+```{r}
+#Plot by location
+par(mfrow=c(3,2))
+plot(fmri_AHeat.ts[,1], main="Awake Heat pSSC", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+plot(fmri_AHeat.ts[,2], main="Awake Heat pSSI", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+
+plot(fmri_AHeat.ts[,3], main="Awake Heat sSSC", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+plot(fmri_AHeat.ts[,4], main="Awake Heat sSSI", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+
+
+plot(fmri_AHeat.ts[,8], main="Awake Heat CrbC", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+plot(fmri_AHeat.ts[,9], main="Awake Heat CrbI", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(fmri_AHeat.ts[,6], main="Awake Heat ThaC", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+plot(fmri_AHeat.ts[,7], main="Awake Heat ThaI", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+
+plot(fmri_AHeat.ts[,5], main="Awake Heat Caudate", xlab="BOLD")
+abline(fit3, col=2) # add the fitted line
+```
+```{r}
+#Regression with differenced data lag=14
+
+summary(fit.ts<-lm(fmri_AHeat.ts[14:127]~diff(fmri_AHeat.ts, lag=14)))
+plot(fit.ts)
+abline(fit.ts, col=2)
+```
+Observations: data is normally distributed. Significant correlations (p-value: 1.824e-15) are between pSSI,sSSI, ThaI and CrbI with Adjusted R-squared:  0.5295. 
+
+
+
+##Scatter and box plot across cycles with with abline
+###Compare primary and secondary SS(C) and SS(I)
+```{r}
+#fmri_AHeat[,2]
+summary(fit<-lm(fmri_AHeat[10:127,1]~diff(fmri_AHeat[,1], lag=10)))
+plot(fit)
+abline(fit, col=2)
+```
+
+
+```{r}
+#Check correlation
+cor(fmri_AHeat[,1],fmri_AHeat[,2],method=c("pearson","kendall","spearman"))
+```
+##Let's create a correlation matrix for Awake-Heat data to compare locations 
+```{r}
+#Install Hmisc package:
+#install.packages("Hmisc")
+#Use rcorr() function
+library("Hmisc")
+```
+
+Use corrplot() function to draw a correlogram. The function corrplot(), in the package of the same name, creates a graphical display of a correlation matrix, highlighting the most correlated variables in a data table.
+
+```{r}
+#Install corrplot
+#install.packages("corrplot")
+library(corrplot)
+```
+
+Correlation coefficients are colored according to the value. Correlation matrix can be also reordered according to the degree of association between variables.
+The function corrplot() takes the correlation matrix as the first argument. The second argument (type="upper") is used to display only the upper triangular of the correlation matrix.
+
+#### Let's combine correlogram with the significance test. We'll use the result generated  with rcorr() function [in Hmisc package]
+Insignificant correlations are leaved blank
+Order method of the correlation matrix ("original" for original order (default), "AOE" for the angular order of the eigenvectors, "FPC" for the first principal component order, "hclust" for the hierarchical clustering order, "alphabet" for alphabetical order)
+```{r}
+#For Awake Heat 
+ah2 <- rcorr(as.matrix(fmri_AHeat))
+ah2
+
+corrplot(ah2$r,method="square", type="upper", 
+          p.mat = ah2$P, sig.level = 0.01, insig = "blank",
+         tl.col="black")
+```
+
+
+###Sedated Heat
+```{r}
+summary(fmri_SHeat)
+
+plot.ts(fmri_SHeat,col=4,xlab="Time (1 pt = 2sec)", main="Sedated Heat")
+
+#Show subtitles 
+mtext("Cortex & Caudate", side=3, adj=.05, line=-0.8) 
+mtext("Thalamus & Cerebellum", side=3, adj=.95, line=-0.8)
+
+```
+####Correlation Martix for the Sedated Heat stimulus
+
+```{r}
+#For Sedated Heat 
+sh2 <- rcorr(as.matrix(fmri_SHeat))
+#sh2
+
+corrplot(sh2$r,method="square", type="upper", 
+          p.mat = sh2$P, sig.level = 0.01, insig = "blank",
+         tl.col="black")
+```
+
+## Depiction of the response to Shock
+### Awake
+```{r}
+
+summary(fmri_AShock)
+
+plot.ts(fmri_AShock,col=4,xlab="Time (1 pt = 2sec)", main="Awake Shock")
+
+#Show subtitles 
+mtext("Cortex & Caudate", side=3, adj=.05, line=-0.8) 
+mtext("Thalamus & Cerebellum", side=3, adj=.95, line=-0.8)
+
+```
+Observations:similar response to heat. More pronounced sinusoid shape of the response in pSSC and Crb(I) that closely resemble each other.
+
+
+
+####Correlation Martix for the Awake Shock stimulus
+
+```{r}
+as2 <- rcorr(as.matrix(fmri_AShock))
+#as2
+
+corrplot(as2$r,method="square", type="upper", 
+          p.mat = as2$P, sig.level = 0.01, insig = "blank",
+         tl.col="black")
+```
+### Sedated
+```{r}
+summary(fmri_SShock)
+
+plot.ts(fmri_SShock,col=4,xlab="Time (1 pt = 2sec)", main="Sedated Shock")
+
+#Show subtitles 
+mtext("Cortex & Caudate", side=3, adj=.05, line=-0.8) 
+mtext("Thalamus & Cerebellum", side=3, adj=.95, line=-0.8)
+
+```
+Observations: WN? while sedated
+
+####Correlation Martix for the Sedated Shock stimulus
+
+```{r}
+ss2 <- rcorr(as.matrix(fmri_SShock))
+#ss2
+
+corrplot(ss2$r,method="square", type="upper", 
+          p.mat = ss2$P, sig.level = 0.01, insig = "blank",
+         tl.col="black")
+```
+
+```{r}
+#ts.plot(as.ts(fmri_AShock[,1]), as.ts(fmri_SShock[,1]),col=3:4,xlab="Time (1 pt = 2sec)", main="Shock")
+#legend('topright', legend=c("Awake","Sedated"), lty=1, col=3:4)
+```
+
+#Data Decomposition
+
+###Decompose and plot Awake Heat data based on the combined locations with the highest significance for correlation 
+###into trends, seasons, residuals
+To use decompose function the frequency has to equal at least 2. Decompose() function makes seasonal adjustments using moving average, depicts original ts, trend, seasonal, and random (remainder) part
+
+```{r}
+# pSS, sSS, Crb(C)
+fmri_AHeat1<-ts(c(fmri_AHeat[,1],fmri_AHeat[,2],fmri_AHeat[,3],fmri_AHeat[,4],fmri_AHeat[,8]), start=1, end=64, frequency=2)
+#is.ts(fmri_AHeat1)
+#fmri_AHeat1
+m1<-decompose(fmri_AHeat1)
+plot(m1)
+plot(ts(m1$random[1:128]))
+acf(m1$random[1:128], na.action=na.pass) #plots autocovariance or autocorrelation
+```
+###Observations:Data presents sinusoidal activity with Autoregressive component that shows dependency on the previous values. Periodic pattern is observed around lags 2, 12,13, 16, 17, and 18
+
+
+##Reduce seasonal effect by aggregating data using aggregate() and cycle() 
+##Show boxplot with a cycle
+```{r message=FALSE, echo=FALSE}
+layout(1:2)
+plot(aggregate(fmri_AHeat1), ylab = "Aggregated")
+boxplot(fmri_AHeat1 ~ cycle(fmri_AHeat1))
+```
+###Observations: Mean is around 0, variance is increased.
+
+
+```{r}
+#Check for NA values
+m1$random[1:128]
+```
+
+# Calculate st dev to check if the decomposition made any effect
+```{r}
+sd(fmri_AHeat1)
+sd(fmri_AHeat1[2:126] - m1$trend[2:126])
+sd(m1$random[2:126])
+
+```
+###Observations: The reduction in the standard deviation shows that the seasonal adjustment has been effective.
+
+
+##Reduce seasonal effect by aggregating data using aggregate() and cycle() . 
+```{r message=FALSE, echo=FALSE}
+layout(1:2)
+plot(aggregate(fmri_AHeat1), ylab = "Aggregated")
+boxplot(fmri_AHeat1 ~ cycle(fmri_AHeat1))
+```
+Observation: mean is stationary at 0. Variance range is stable.
+
+###Decompose Sedated Heat data based on the combined locations with the highest significance for correlation 
+
+```{r}
+# Caudate, Thalamus and Cerebellum
+fmri_SHeat1<-ts(c(fmri_SHeat[,5],fmri_SHeat[,6],fmri_SHeat[,7],fmri_SHeat[,8],fmri_SHeat[,9]), start=1, end=64, frequency=2)
+
+m2<-decompose(fmri_SHeat1)
+plot(m2)
+plot(ts(m2$random[1:128]))
+acf(m2$random[1:128], na.action=na.pass) #plots autocovariance or autocorrelation
+```
+###Observation: First two lags are highly correlated, however the rest of the lags are relatively stable inside the 95%. Lag 22 slightly elevated. The model appears to have a periodic pattern with a pronounced sinisoidal shape.
+
+
+# Calculate st dev to check if the decomposition made any effect
+```{r}
+sd(fmri_SHeat1)
+sd(fmri_SHeat1[2:126] - m2$trend[2:126])
+sd(m2$random[2:126])
+
+```
+###Observation: The reduction in the standard deviation shows that the seasonal adjustment has been effective.
+
+###Decompose Awake Shock data based on the combined locations with the highest significance for correlation 
+
+```{r}
+# sSS + Crb(I)
+fmri_AShock1<-ts(c(fmri_AShock[,3],fmri_AShock[,4],fmri_AShock[,9]), start=1, end=64, frequency=2)
+
+m3<-decompose(fmri_AShock1)
+plot(m3)
+plot(ts(m3$random[1:128]))
+acf(m3$random[1:128], na.action=na.pass) #plots autocovariance or autocorrelation
+```
+###Observation: 95% of the lags locate between the blue lines of lag-wise 95% confidence intervals and the mean is around 0. However the trend shows a periodic pattern with a cycle length of approximately two observations
+
+
+# Calculate st dev to check if the decomposition made any effect
+```{r}
+sd(fmri_AShock1)
+sd(fmri_AShock1[2:126] - m3$trend[2:126])
+sd(m3$random[2:126])
+
+```
+Observations: The reduction in the standard deviation shows that the seasonal adjustment has been effective.
+
+###Decompose Sedated Shock data based on the combined locations 
+
+```{r}
+#pSS
+fmri_SShock1<-ts(c(fmri_SShock[,1],fmri_AShock[,2]), start=1, end=64, frequency=2)
+
+m4<-decompose(fmri_SShock1)
+plot(ts(m4$random[1:128]))
+acf(m4$random[1:128], na.action=na.pass) #plots autocovariance or autocorrelation
+```
+
+# Calculate st dev to check if the decomposition made any effect
+```{r}
+sd(fmri_SShock1)
+sd(fmri_SShock1[2:126] - m4$trend[2:126])
+sd(m4$random[2:126])
+
+```
+Observations: The slight reduction in the standard deviation shows that the seasonal adjustment has been only mildly effective.
+
+#Let's check if it is White Noise.
+
+## WN assumptions:
+### 95% of values ~= 0  and lay inside the blue lines
+### They should be uncorrelated
+### They should have mean zero
+Useful properties (for computing prediction intervals)
+### They should have constant variance
+### They should be normally distributed
+
+#Use Ljung-Box test to check for WN
+The Ljung-Box test considers the first h autocorrelation values together.
+
+```{r}
+Box.test(fmri_SShock1, lag = 16, fitdf = 0, type = "Lj")
+
+```
+p-value = 0.01828 indicates the data are probably White Noise.
+
+#Summary: 
+We can test for white noise by looking at an ACF plot or by doing a Ljung-Box test
+
+#Forecasts and potential futures
+The 80% forecast intervals should contain 80% of the future observations
+The 95% forecast intervals should contain 95% of the future observations
+
+
+
+### time() function calculates a vector of time indices, with one element for each time index on which the series was observed.
+```{r}
+ time(fmri_AHeat1)
+```
+
+### deltat() function returns the fixed time interval between observations 
+
+```{r}
+deltat(fmri_AHeat1)
+```
+### frequency() function returns the number of observations per unit time. 
+```{r}
+ frequency(fmri_AHeat1)
+```
+
+#### cycle() function returns the position in the cycle of each observation.
+```{r}
+
+ cycle(fmri_AHeat1) 
+ 
+```
+
+#ARMA/ARIMA model
+
+```{r}
+#compute seasonally adjusted (and by default plot) estimates of the autocovariance or autocorrelation function.
+acf(diff(fmri_AHeat[,1], s=64))
+```
+Observations: depicts cyclic nature of the data. The correlations cut off by lag 10 and re-institutes itself for lags 15 through 20 (ARIMA model) 
+```{r}
+#Used for the partial autocorrelations.
+pacf(diff(fmri_AHeat[,1], s=64))
+```
+
+Observations: Similar cyclic however stationary behavior was observed. Predicted ARIMA model
+
+#Model Diagnostics 
+build ARIMA model with various p, d, q [for d - see https://people.duke.edu/~rnau/411arim2.htm] 
+
+
+```{r}
+#select the best model
+library(forecast)
+fit2 <- auto.arima(fmri_AHeat.ts[,1])
+summary(fit2)
+```
+
+```{r}
+#Show predicted values
+fit2 %>% forecast() %>% autoplot()
+```
+
+```{r}
+checkresiduals(fit2)
+```
+
+Observations: Residuals are N-distributed with mean=0 and provide an adequete fit.
+
+
+```{r}
+#Check for the best fit based on AIC and BIC from MA and AR models
+MA_fit <- arima(fmri_AHeat.ts[,1], order = c(0,0,1))
+
+AIC(MA_fit)
+
+BIC(MA_fit)
+
+```
+
+```{r}
+AR_fit <- arima(fmri_AHeat.ts[,1], order = c(1,0,0))
+
+AIC(AR_fit)
+
+BIC(AR_fit)
+```
+
+Observation: Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) are the smallest for the AR model that would confirm the best fit for our model.
+
+```{r}
+#Check for ARMA behavior
+plot(fmri_AHeat.ts[,1], main = "ARIMA(p = 1, d = 1, q = 0)")
+plot(diff(fmri_AHeat.ts[,1]), main = "ARMA(p = 1, d = 0, q = 0)")
+
+#Fit an ARIMA model to a univariate time series
+fitARIMA <- arima(diff(fmri_AHeat[,1]), order=c(2,0,0),seasonal = list(order = c(1,0,0), period = 32),method="ML")
+
+#load for Diagnostic Checking in Regression Relationships
+library(lmtest)
+
+#Perform z and (quasi-)t Wald tests of estimated coefficients. Compute the corresponding Wald confidence intervals.
+coeftest(fitARIMA) 
+```
+
+```{r}
+#Remove insignificant coefficients. Computes confidence intervals for one or more parameters in a fitted model
+confint(fitARIMA)
+```
+
+
+```{r}
+#estimate of the autocovariance or autocorrelation function
+acf2(fitARIMA$residuals)
+
+#load to Fit AR and subset AR models and provide complete model building capabilities
+library(FitAR)
+
+#Ljung-Box Portmanteau test for the goodness of fit of ARIMA models
+boxresult <- LjungBoxTest (fitARIMA$residuals,k=2,StartLag=1)
+
+#Plot results
+plot(boxresult[,3],main= "Ljung-Box Q Test", ylab= "P-values", xlab= "Lag")
+
+#produce a normal QQ plot of the values in y. qqline adds a line to a "theoretical", by default normal, quantile-quantile plot which passes through the probs quantiles, by default the first and third quartiles.
+qqnorm(fitARIMA$residuals)
+qqline(fitARIMA$residuals)
+``` 
+
